@@ -1,0 +1,38 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --ink: #15120f;
+  --ivory: #f5efe6;
+  --gold: #c9a961;
+  --gold-deep: #9c7a2e; /* used for small text/links on light backgrounds — brighter gold is too low-contrast there */
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+}
+
+@layer utilities {
+  /* Diagonal placeholder pattern for products without an image yet. */
+  .bg-placeholder-pattern {
+    background-image: repeating-linear-gradient(
+      45deg,
+      color-mix(in srgb, var(--ink) 5%, transparent),
+      color-mix(in srgb, var(--ink) 5%, transparent) 10px,
+      transparent 10px,
+      transparent 20px
+    );
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
