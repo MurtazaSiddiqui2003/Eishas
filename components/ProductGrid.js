@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useCart } from "@/context/CartContext";
+import { formatPrice } from "@/lib/currency";
 
 export default function ProductGrid({ products, emptyMessage, storeHref }) {
   const { addItem } = useCart();
@@ -41,11 +42,11 @@ export default function ProductGrid({ products, emptyMessage, storeHref }) {
           </a>
           <div className="flex items-baseline gap-2.5 mt-0.5">
             <span className="font-body font-medium text-theme-accent">
-              ${product.price.toFixed(2)}
+              {formatPrice(product.price)}
             </span>
             {product.compareAtPrice ? (
               <span className="font-body text-sm text-theme-ink opacity-40 line-through">
-                ${product.compareAtPrice.toFixed(2)}
+                {formatPrice(product.compareAtPrice)}
               </span>
             ) : null}
           </div>

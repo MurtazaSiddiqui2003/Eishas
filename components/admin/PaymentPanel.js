@@ -1,0 +1,108 @@
+"use client";
+
+import { useEffect, useState } from "react";
+
+const emptyForm = {
+  bankName: "",
+  accountTitle: "",
+  accountNumber: "",
+  iban: "",
+  easypaisaNumber: "",
+  easypaisaName: "",
+  whatsappNumber: "",
+  instructions: "",
+};
+
+export default function PaymentPanel() {
+  const [form, setForm] = useState(emptyForm);
+  const [status, setStatus] = useState(null);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/payment-settings")
+      .then((res) => res.json())
+      .then((data) => setForm({ ...emptyForm, ...data }));
+  }, []);
+
+  function update(field) {
+    return (e) => setForm((f) => ({ ...f, [field]: e.target.value }));
+  }
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    setSaving(true);
+    setStatus(null);
+
+    try {
+      const res = await fetch("/api/payment-settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+      if (!res.ok) throw new Error("Could not save");
+      setStatus({ type: "success", message: "Saved." });
+    } catch (err) {
+      setStatus({ type: "error", message: err.message });
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  const inputClass = "px-3 py-2.5 border border-[#d5d5d0] text-sm font-inherit";
+
+  return (
+    <div className="p-8 max-w-[560px] mx-auto">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-3 bg-white p-6 border border-[#e2e2de]">
+        <div className="mb-2">
+          <h2 className="text-sm mb-1">Payment details</h2>
+          <p className="text-xs text-[#888]">
+            Shown to customers on the order confirmation page after checkout, so they
+            know where to send payment. Leave sections blank to hide them.
+          </p>
+        </div>
+
+        <p className="text-xs text-[#666] font-medium mt-1">Bank transfer</p>
+        <input className={inputClass} placeholder="Bank name" value={form.bankName} onChange={update("bankName")} />
+        <input className={inputClass} placeholder="Account title" value={form.accountTitle} onChange={update("accountTitle")} />
+        <input className={inputClass} placeholder="Account number" value={form.accountNumber} onChange={update("accountNumber")} />
+        <input className={inputClass} placeholder="IBAN (optional)" value={form.iban} onChange={update("iban")} />
+
+        <p className="text-xs text-[#666] font-medium mt-3">EasyPaisa</p>
+        <input className={inputClass} placeholder="EasyPaisa number" value={form.easypaisaNumber} onChange={update("easypaisaNumber")} />
+        <input className={inputClass} placeholder="Account name" value={form.easypaisaName} onChange={update("easypaisaName")} />
+
+        <p className="text-xs text-[#666] font-medium mt-3">Payment proof</p>
+        <input
+          className={inputClass}
+          placeholder="WhatsApp number (e.g. 923001234567, no + or spaces)"
+          value={form.whatsappNumber}
+          onChange={update("whatsappNumber")}
+        />
+        <p className="text-xs text-[#888] -mt-1">
+          Customers get a button after checkout to send you their payment screenshot here.
+        </p>
+
+        <textarea
+          className={`${inputClass} min-h-[70px] resize-y mt-2`}
+          placeholder="Any extra instructions (optional) — e.g. delivery time, how long payment verification takes"
+          value={form.instructions}
+          onChange={update("instructions")}
+        />
+
+        {status && (
+          <p className={`text-sm ${status.type === "success" ? "text-[#1f7a3d]" : "text-[#b3261e]"}`}>
+            {status.message}
+          </p>
+        )}
+
+        <button
+          type="submit"
+          disabled={saving}
+          className="py-3 mt-2 bg-[#1a1a1a] text-white text-sm disabled:opacity-50"
+        >
+          {saving ? "Saving…" : "Save payment details"}
+        </button>
+      </form>
+    </div>
+  );
+}

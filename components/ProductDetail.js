@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import { useCart } from "@/context/CartContext";
+import { formatPrice } from "@/lib/currency";
 
 export default function ProductDetail({ product }) {
   const { addItem } = useCart();
@@ -55,7 +56,7 @@ export default function ProductDetail({ product }) {
           {product.category}
         </p>
         <h1 className="font-display text-2xl mb-3 text-theme-ink">{product.name}</h1>
-        <p className="font-body text-lg text-theme-accent mb-5">${product.price.toFixed(2)}</p>
+        <p className="font-body text-lg text-theme-accent mb-5">{formatPrice(product.price)}</p>
         <p className="font-body text-sm leading-relaxed opacity-80 mb-6 whitespace-pre-line">
           {product.description}
         </p>
@@ -83,6 +84,7 @@ export default function ProductDetail({ product }) {
 
         <div className="font-body text-sm opacity-70 space-y-1 mb-6">
           {product.color && <p>Color: {product.color}</p>}
+          {product.fabric && <p>Fabric: {product.fabric}</p>}
           {product.material && <p>Material: {product.material}</p>}
           {product.skinType && <p>Skin type: {product.skinType}</p>}
           {product.volume && <p>Volume: {product.volume}</p>}

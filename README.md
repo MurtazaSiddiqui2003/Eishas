@@ -22,21 +22,29 @@ app/
   jewelry/                    → Eisha's Jewelry (onyx/gold, Bodoni Moda)
     [slug]/
   cart/                          → shared cart, grouped by store
+  checkout/                       → shipping form → creates an order
+  order-confirmation/[orderNumber] → payment instructions + WhatsApp proof button
   login/                          → shared sign in / sign up
-  admin/                           → password-gated: Products + Store design tabs
+  admin/                           → password-gated: Products, Store design, Orders, Payment tabs
   api/
     auth/[...nextauth]            → NextAuth handler
     signup                         → customer account creation
     products, products/[id]         → list/create/delete/update products
     settings                          → per-store logo/hero/door image settings
+    orders, orders/[id]                → create/list orders, update payment/fulfillment status
+    payment-settings                     → bank/EasyPaisa details shown at checkout
     admin/login                        → admin password check
 lib/
-  mongodb.js    → cached DB connection
-  cloudinary.js → server-side Cloudinary config (available for future signed ops)
-  auth.js       → NextAuth options
+  mongodb.js     → cached DB connection
+  cloudinary.js  → server-side Cloudinary config (available for future signed ops)
+  auth.js        → NextAuth options
+  currency.js    → PKR price formatting used everywhere
+  orderNumber.js → generates sequential ES-0001 style order numbers
 models/
-  Product.js  → shared schema, has a `store` field (apparel/beauty/jewelry)
-  Settings.js → one doc per store: logo, doorImage, heroImage
+  Product.js        → shared schema, has a `store` field (apparel/beauty/jewelry)
+  Settings.js        → one doc per store: logo, doorImage, heroImage (+ mobile variants)
+  PaymentSettings.js  → single doc: bank/EasyPaisa/WhatsApp details
+  Counter.js           → backs the sequential order number generator
   User.js
   Order.js
 context/
@@ -46,7 +54,9 @@ components/
   HeroBanner.js → hero banner with optional separate mobile image (art-directed crop, not just resized)
   StoreNav.js, ProductGrid.js, FeaturedProducts.js, StoreCatalog.js, ProductDetail.js
   AdminLogin.js
+  admin/OrdersPanel.js, admin/PaymentPanel.js
 ```
+
 
 ## How the theming works
 
@@ -112,18 +122,43 @@ Go to `/admin`, enter the admin password. Two tabs per store:
 - Product grid → click through to a full product detail page with an
   image gallery, size selector (apparel), and add-to-cart
 
+## Checkout, orders & payment
+
+Checkout is manual-transfer for now (bank / EasyPaisa), designed so a real
+payment gateway can be dropped in later without rebuilding the flow:
+
+1. Customer fills out shipping details at `/checkout` and places the order
+2. An order is created with a sequential order number (`ES-0001`, `ES-0002`, ...),
+   stock is decremented, and `paymentStatus` starts as `pending_verification`
+3. They land on `/order-confirmation/[orderNumber]`, which shows your bank/
+   EasyPaisa details (from the admin Payment tab) and a WhatsApp button to
+   send payment proof
+4. You confirm payment came in and mark the order **Paid** from the admin
+   **Orders** tab, and update fulfillment status (processing/shipped/etc.)
+   from there too, with a Print invoice button for each order
+
+To swap in a real gateway later (Safepay, JazzCash, EasyPaisa merchant API,
+etc.): the pieces that change are the payment step in `/checkout` and
+`paymentMethod`/`paymentStatus` on the `Order` model — everything else
+(order numbers, stock, the Orders admin tab) stays the same.
+
+All prices display in PKR (`Rs 1,200` format) via `lib/currency.js`.
+
 ## What's not built yet (on purpose — this is a solid base to build on)
 
-- **Checkout / payment** — the cart page's "Checkout" button is a
-  placeholder. Stripe or Safepay plugs in here when you're ready.
-- **Order history** on the customer account page (the `Order` model
-  exists, but there's no page listing a customer's past orders yet).
-- **Editing existing products** — right now the admin panel can add and
-  delete products, but not edit one in place.
+- **A real payment gateway** — currently manual bank/EasyPaisa transfer with
+  admin-side verification (see above). Fine to start with, worth upgrading
+  once you're getting consistent volume.
+- **Order history** on the customer account page (the `Order` model tracks
+  `user` when someone's signed in, but there's no page listing a customer's
+  past orders yet).
 - **Deleting a product's Cloudinary images when the product is deleted** —
   currently just removes the database record.
+- **Shipping cost** — checkout currently has no delivery fee logic, `total`
+  is just the cart subtotal.
 
 ## Deploying
 
 Push to GitHub, import into Vercel, add the environment variables in the
 Vercel dashboard, connect your domain the same way you did for CRC Core.
+
