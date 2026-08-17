@@ -1,6 +1,7 @@
 "use client";
 
 import { useCart } from "@/context/CartContext";
+import { formatPrice } from "@/lib/currency";
 
 const storeLabels = {
   apparel: "Eisha's Collection",
@@ -70,7 +71,7 @@ export default function CartPage() {
                     </div>
                   </div>
                   <div className="text-right text-sm flex flex-col justify-between">
-                    <p>${(item.price * item.quantity).toFixed(2)}</p>
+                    <p>{formatPrice(item.price * item.quantity)}</p>
                     <button
                       className="text-xs opacity-50 hover:opacity-100 hover:text-[#e08585] mt-2"
                       onClick={() => removeItem(item.productId, item.size)}
@@ -85,15 +86,15 @@ export default function CartPage() {
 
           <div className="flex justify-between font-['Cormorant_Garamond'] text-xl py-6 border-t border-black/15">
             <span>Total</span>
-            <span>${total.toFixed(2)}</span>
+            <span>{formatPrice(total)}</span>
           </div>
 
-          <button className="w-full py-4 bg-[var(--gold)] text-[var(--ink)] font-medium tracking-wide">
+          <a
+            href="/checkout"
+            className="block text-center w-full py-4 bg-[var(--gold)] text-[var(--ink)] font-medium tracking-wide"
+          >
             Checkout
-          </button>
-          <p className="text-center text-xs opacity-40 mt-3">
-            Checkout / payment integration is the next piece to wire up.
-          </p>
+          </a>
         </>
       )}
     </main>

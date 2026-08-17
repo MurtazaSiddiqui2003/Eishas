@@ -2,6 +2,19 @@
 
 import { useEffect, useState } from "react";
 import ImageUploader from "@/components/ImageUploader";
+import OrdersPanel from "@/components/admin/OrdersPanel";
+import PaymentPanel from "@/components/admin/PaymentPanel";
+import { formatPrice } from "@/lib/currency";
+
+// Curated per-store categories, with a "custom" escape hatch. This is
+// what fixes the earlier bug where the category field was a free-text
+// box that invited typing a comma list (like the Sizes field nearby) —
+// now it's either one clean preset, or one clean custom value.
+const CATEGORY_PRESETS = {
+  apparel: ["Sarees", "Lehngas", "Suits", "Kurtis", "Sharara"],
+  beauty: ["Skincare", "Makeup", "Haircare", "Fragrance"],
+  jewelry: ["Earrings", "Necklaces", "Bangles", "Rings", "Sets"],
+};
 
 const emptyForm = {
   store: "apparel",
@@ -14,6 +27,7 @@ const emptyForm = {
   category: "",
   sizes: "",
   color: "",
+  fabric: "",
   skinType: "",
   volume: "",
   material: "",
@@ -27,6 +41,8 @@ export default function AdminPage() {
 
   const [products, setProducts] = useState([]);
   const [form, setForm] = useState(emptyForm);
+  const [categoryMode, setCategoryMode] = useState("preset"); // "preset" | "custom"
+  const [editingId, setEditingId] = useState(null);
   const [status, setStatus] = useState(null);
   const [saving, setSaving] = useState(false);
 
@@ -96,6 +112,46 @@ export default function AdminPage() {
       .replace(/(^-|-$)/g, "");
   }
 
+  function handleCategorySelect(e) {
+    if (e.target.value === "__custom__") {
+      setCategoryMode("custom");
+      setForm((f) => ({ ...f, category: "" }));
+    } else {
+      setCategoryMode("preset");
+      setForm((f) => ({ ...f, category: e.target.value }));
+    }
+  }
+
+  function resetForm(store) {
+    setForm({ ...emptyForm, store });
+    setCategoryMode("preset");
+    setEditingId(null);
+  }
+
+  function handleEdit(p) {
+    setEditingId(p._id);
+    setStatus(null);
+    setCategoryMode(CATEGORY_PRESETS[p.store]?.includes(p.category) ? "preset" : "custom");
+    setForm({
+      store: p.store,
+      name: p.name,
+      slug: p.slug,
+      description: p.description,
+      price: String(p.price),
+      compareAtPrice: p.compareAtPrice != null ? String(p.compareAtPrice) : "",
+      images: p.images || [],
+      category: p.category,
+      sizes: (p.sizes || []).join(", "),
+      color: p.color || "",
+      fabric: p.fabric || "",
+      skinType: p.skinType || "",
+      volume: p.volume || "",
+      material: p.material || "",
+      stock: String(p.stock),
+      featured: !!p.featured,
+    });
+  }
+
   async function handleSubmit(e) {
     e.preventDefault();
     setSaving(true);
@@ -104,6 +160,9 @@ export default function AdminPage() {
     try {
       if (form.images.length === 0) {
         throw new Error("Add at least one product image");
+      }
+      if (!form.category) {
+        throw new Error("Pick or type a category");
       }
 
       const payload = {
@@ -120,6 +179,7 @@ export default function AdminPage() {
         ...(form.store === "apparel" && {
           sizes: form.sizes.split(",").map((s) => s.trim()).filter(Boolean),
           color: form.color,
+          fabric: form.fabric,
         }),
         ...(form.store === "beauty" && {
           skinType: form.skinType,
@@ -127,11 +187,15 @@ export default function AdminPage() {
         }),
         ...(form.store === "jewelry" && {
           material: form.material,
+          color: form.color,
         }),
       };
 
-      const res = await fetch("/api/products", {
-        method: "POST",
+      const url = editingId ? `/api/products/${editingId}` : "/api/products";
+      const method = editingId ? "PATCH" : "POST";
+
+      const res = await fetch(url, {
+        method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
@@ -141,8 +205,8 @@ export default function AdminPage() {
         throw new Error(data.error || "Could not save product");
       }
 
-      setStatus({ type: "success", message: "Product added." });
-      setForm({ ...emptyForm, store: form.store });
+      setStatus({ type: "success", message: editingId ? "Product updated." : "Product added." });
+      resetForm(form.store);
       loadProducts();
     } catch (err) {
       setStatus({ type: "error", message: err.message });
@@ -154,6 +218,7 @@ export default function AdminPage() {
   async function handleDelete(id) {
     if (!confirm("Delete this product?")) return;
     await fetch(`/api/products/${id}`, { method: "DELETE" });
+    if (editingId === id) resetForm(activeStore);
     loadProducts();
   }
 
@@ -187,28 +252,30 @@ export default function AdminPage() {
 
   return (
     <>
-      <header className="flex flex-wrap justify-between items-center gap-4 px-8 py-6 border-b border-[#ddd]">
+      <header className="print:hidden flex flex-wrap justify-between items-center gap-4 px-8 py-6 border-b border-[#ddd]">
         <h1 className="text-xl">Eisha&rsquo;s — Admin</h1>
 
         <div className="flex flex-wrap items-center gap-6">
-          <div className="flex gap-4 text-sm">
-            {["apparel", "beauty", "jewelry"].map((store) => (
-              <button
-                key={store}
-                className={`px-3.5 py-1.5 border ${
-                  activeStore === store
-                    ? "bg-[#1a1a1a] text-white border-[#1a1a1a]"
-                    : "bg-white border-[#ddd]"
-                }`}
-                onClick={() => {
-                  setActiveStore(store);
-                  setForm((f) => ({ ...emptyForm, store }));
-                }}
-              >
-                {store[0].toUpperCase() + store.slice(1)}
-              </button>
-            ))}
-          </div>
+          {(section === "products" || section === "design") && (
+            <div className="flex gap-4 text-sm">
+              {["apparel", "beauty", "jewelry"].map((store) => (
+                <button
+                  key={store}
+                  className={`px-3.5 py-1.5 border ${
+                    activeStore === store
+                      ? "bg-[#1a1a1a] text-white border-[#1a1a1a]"
+                      : "bg-white border-[#ddd]"
+                  }`}
+                  onClick={() => {
+                    setActiveStore(store);
+                    resetForm(store);
+                  }}
+                >
+                  {store[0].toUpperCase() + store.slice(1)}
+                </button>
+              ))}
+            </div>
+          )}
 
           <div className="flex gap-2 text-xs">
             <button
@@ -227,11 +294,31 @@ export default function AdminPage() {
             >
               Store design
             </button>
+            <button
+              className={`px-3 py-1.5 border ${
+                section === "orders" ? "bg-[#1a1a1a] text-white border-[#1a1a1a]" : "border-[#ddd]"
+              }`}
+              onClick={() => setSection("orders")}
+            >
+              Orders
+            </button>
+            <button
+              className={`px-3 py-1.5 border ${
+                section === "payment" ? "bg-[#1a1a1a] text-white border-[#1a1a1a]" : "border-[#ddd]"
+              }`}
+              onClick={() => setSection("payment")}
+            >
+              Payment
+            </button>
           </div>
         </div>
       </header>
 
-      {section === "design" ? (
+      {section === "orders" ? (
+        <OrdersPanel />
+      ) : section === "payment" ? (
+        <PaymentPanel />
+      ) : section === "design" ? (
         <div className="p-8 max-w-[560px] mx-auto">
           <form onSubmit={handleSaveSettings} className="flex flex-col gap-6 bg-white p-6 border border-[#e2e2de]">
             <div>
@@ -292,7 +379,20 @@ export default function AdminPage() {
       ) : (
         <div className="p-8 max-w-[1000px] mx-auto grid grid-cols-1 md:grid-cols-[1fr_1.4fr] gap-10">
           <form onSubmit={handleSubmit} className="flex flex-col gap-2.5 bg-white p-6 border border-[#e2e2de]">
-            <h2 className="text-sm mb-1">Add product — {activeStore}</h2>
+            <div className="flex items-center justify-between mb-1">
+              <h2 className="text-sm">
+                {editingId ? "Edit product" : "Add product"} — {activeStore}
+              </h2>
+              {editingId && (
+                <button
+                  type="button"
+                  onClick={() => resetForm(activeStore)}
+                  className="text-xs text-[#888] hover:text-[#1a1a1a]"
+                >
+                  Cancel edit
+                </button>
+              )}
+            </div>
 
             <input className={inputClass} placeholder="Name" value={form.name} onChange={updateName} required />
             <input className={inputClass} placeholder="Slug (url)" value={form.slug} onChange={update("slug")} required />
@@ -303,7 +403,24 @@ export default function AdminPage() {
               onChange={update("description")}
               required
             />
-            <input className={inputClass} placeholder="Category (e.g. Sarees)" value={form.category} onChange={update("category")} required />
+
+            <label className={labelClass}>Category</label>
+            <select className={inputClass} value={categoryMode === "custom" ? "__custom__" : form.category} onChange={handleCategorySelect}>
+              <option value="" disabled>Choose a category…</option>
+              {CATEGORY_PRESETS[form.store].map((c) => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+              <option value="__custom__">Other (type your own)</option>
+            </select>
+            {categoryMode === "custom" && (
+              <input
+                className={inputClass}
+                placeholder="Type the category name"
+                value={form.category}
+                onChange={update("category")}
+                required
+              />
+            )}
 
             <ImageUploader
               label="Product images (first one is the main image)"
@@ -323,6 +440,7 @@ export default function AdminPage() {
               <>
                 <input className={inputClass} placeholder="Sizes (S, M, L, XL)" value={form.sizes} onChange={update("sizes")} />
                 <input className={inputClass} placeholder="Color" value={form.color} onChange={update("color")} />
+                <input className={inputClass} placeholder="Fabric (e.g. Chiffon, Silk, Cotton)" value={form.fabric} onChange={update("fabric")} />
               </>
             )}
 
@@ -334,7 +452,10 @@ export default function AdminPage() {
             )}
 
             {form.store === "jewelry" && (
-              <input className={inputClass} placeholder="Material (e.g. 22k Gold Plated)" value={form.material} onChange={update("material")} />
+              <>
+                <input className={inputClass} placeholder="Material (e.g. 22k Gold Plated)" value={form.material} onChange={update("material")} />
+                <input className={inputClass} placeholder="Color (e.g. Rose Gold, Antique Silver)" value={form.color} onChange={update("color")} />
+              </>
             )}
 
             <label className="flex items-center gap-1.5 flex-row text-sm">
@@ -353,7 +474,7 @@ export default function AdminPage() {
               disabled={saving}
               className="py-3 mt-2 bg-[#1a1a1a] text-white text-sm disabled:opacity-50"
             >
-              {saving ? "Saving…" : "Add product"}
+              {saving ? "Saving…" : editingId ? "Save changes" : "Add product"}
             </button>
           </form>
 
@@ -366,17 +487,25 @@ export default function AdminPage() {
             ) : (
               <div className="flex flex-col gap-2.5">
                 {filtered.map((p) => (
-                  <div key={p._id} className="flex gap-3 items-center bg-white border border-[#e2e2de] px-4 py-2.5 text-sm">
+                  <div
+                    key={p._id}
+                    className={`flex gap-3 items-center bg-white border px-4 py-2.5 text-sm ${
+                      editingId === p._id ? "border-[#1a1a1a]" : "border-[#e2e2de]"
+                    }`}
+                  >
                     {p.images?.[0] && (
                       <img src={p.images[0]} alt={p.name} className="w-10 h-[50px] object-cover bg-[#eee] shrink-0" />
                     )}
                     <div className="flex-1">
                       {p.name}
                       <div className="text-xs uppercase tracking-wide text-[#888]">
-                        {p.category} · ${p.price} {p.images?.length > 1 ? `· ${p.images.length} images` : ""}
+                        {p.category} · {formatPrice(p.price)} {p.images?.length > 1 ? `· ${p.images.length} images` : ""}
                       </div>
                     </div>
-                    <button onClick={() => handleDelete(p._id)} className="text-xs">
+                    <button onClick={() => handleEdit(p)} className="text-xs text-[#666] hover:text-[#1a1a1a]">
+                      Edit
+                    </button>
+                    <button onClick={() => handleDelete(p._id)} className="text-xs text-[#666] hover:text-[#b3261e]">
                       Delete
                     </button>
                   </div>
