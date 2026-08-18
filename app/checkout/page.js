@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useCart } from "@/context/CartContext";
 import { formatPrice } from "@/lib/currency";
+import Footer from "@/components/Footer";
 
 export default function CheckoutPage() {
   const { items, total, clearCart } = useCart();
@@ -75,8 +76,8 @@ export default function CheckoutPage() {
     "w-full px-4 py-3 border border-black/15 text-[var(--ink)] placeholder:text-[color-mix(in_srgb,var(--ink)_40%,transparent)] font-['Inter'] text-sm bg-white";
 
   return (
-    <main className="min-h-screen bg-[var(--ivory)] text-[var(--ink)] font-['Inter']">
-      <div className="max-w-[900px] mx-auto px-6 py-10 grid grid-cols-1 md:grid-cols-[1.3fr_1fr] gap-10">
+    <main className="min-h-screen bg-[var(--ivory)] text-[var(--ink)] font-['Inter'] flex flex-col">
+      <div className="w-full max-w-[900px] mx-auto px-6 py-10 grid grid-cols-1 md:grid-cols-[1.3fr_1fr] gap-10 flex-1">
         <div>
           <a href="/" className="block font-['Cormorant_Garamond'] text-2xl mb-8">
             Eisha&rsquo;s
@@ -130,6 +131,7 @@ export default function CheckoutPage() {
           </div>
         </div>
       </div>
+      <Footer variant="shell" />
     </main>
   );
 }

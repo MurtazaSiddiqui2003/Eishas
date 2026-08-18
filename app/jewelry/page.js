@@ -1,22 +1,26 @@
 import { connectDB } from "@/lib/mongodb";
 import Product from "@/models/Product";
 import Settings from "@/models/Settings";
+import PaymentSettings from "@/models/PaymentSettings";
 import StoreNav from "@/components/StoreNav";
 import FeaturedProducts from "@/components/FeaturedProducts";
 import StoreCatalog from "@/components/StoreCatalog";
 import HeroBanner from "@/components/HeroBanner";
+import Footer from "@/components/Footer";
 
 export const dynamic = "force-dynamic";
 
 async function getData() {
   await connectDB();
-  const [products, settings] = await Promise.all([
+  const [products, settings, paymentSettings] = await Promise.all([
     Product.find({ store: "jewelry" }).sort({ createdAt: -1 }).lean(),
     Settings.findOne({ store: "jewelry" }).lean(),
+    PaymentSettings.findOne({ key: "default" }).lean(),
   ]);
   return {
     products: JSON.parse(JSON.stringify(products)),
     settings: settings ? JSON.parse(JSON.stringify(settings)) : null,
+    whatsappNumber: paymentSettings?.whatsappNumber,
   };
 }
 
@@ -29,7 +33,7 @@ const vitrineFrame = (
 );
 
 export default async function JewelryPage() {
-  const { products, settings } = await getData();
+  const { products, settings, whatsappNumber } = await getData();
 
   return (
     <>
@@ -51,6 +55,8 @@ export default async function JewelryPage() {
 
       <FeaturedProducts products={products} storeHref="/jewelry" />
       <StoreCatalog products={products} storeHref="/jewelry" />
+
+      <Footer whatsappNumber={whatsappNumber} />
     </>
   );
 }

@@ -1,27 +1,31 @@
 import { connectDB } from "@/lib/mongodb";
 import Product from "@/models/Product";
 import Settings from "@/models/Settings";
+import PaymentSettings from "@/models/PaymentSettings";
 import StoreNav from "@/components/StoreNav";
 import FeaturedProducts from "@/components/FeaturedProducts";
 import StoreCatalog from "@/components/StoreCatalog";
 import HeroBanner from "@/components/HeroBanner";
+import Footer from "@/components/Footer";
 
 export const dynamic = "force-dynamic";
 
 async function getData() {
   await connectDB();
-  const [products, settings] = await Promise.all([
+  const [products, settings, paymentSettings] = await Promise.all([
     Product.find({ store: "beauty" }).sort({ createdAt: -1 }).lean(),
     Settings.findOne({ store: "beauty" }).lean(),
+    PaymentSettings.findOne({ key: "default" }).lean(),
   ]);
   return {
     products: JSON.parse(JSON.stringify(products)),
     settings: settings ? JSON.parse(JSON.stringify(settings)) : null,
+    whatsappNumber: paymentSettings?.whatsappNumber,
   };
 }
 
 export default async function BeautyPage() {
-  const { products, settings } = await getData();
+  const { products, settings, whatsappNumber } = await getData();
 
   return (
     <>
@@ -42,6 +46,8 @@ export default async function BeautyPage() {
 
       <FeaturedProducts products={products} storeHref="/beauty" />
       <StoreCatalog products={products} storeHref="/beauty" />
+
+      <Footer whatsappNumber={whatsappNumber} />
     </>
   );
 }

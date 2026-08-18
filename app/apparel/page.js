@@ -1,10 +1,12 @@
 import { connectDB } from "@/lib/mongodb";
 import Product from "@/models/Product";
 import Settings from "@/models/Settings";
+import PaymentSettings from "@/models/PaymentSettings";
 import StoreNav from "@/components/StoreNav";
 import FeaturedProducts from "@/components/FeaturedProducts";
 import StoreCatalog from "@/components/StoreCatalog";
 import HeroBanner from "@/components/HeroBanner";
+import Footer from "@/components/Footer";
 
 // Render fresh on every request instead of at build time — otherwise
 // new products/images added in the admin panel wouldn't show up until
@@ -13,13 +15,15 @@ export const dynamic = "force-dynamic";
 
 async function getData() {
   await connectDB();
-  const [products, settings] = await Promise.all([
+  const [products, settings, paymentSettings] = await Promise.all([
     Product.find({ store: "apparel" }).sort({ createdAt: -1 }).lean(),
     Settings.findOne({ store: "apparel" }).lean(),
+    PaymentSettings.findOne({ key: "default" }).lean(),
   ]);
   return {
     products: JSON.parse(JSON.stringify(products)),
     settings: settings ? JSON.parse(JSON.stringify(settings)) : null,
+    whatsappNumber: paymentSettings?.whatsappNumber,
   };
 }
 
@@ -35,7 +39,7 @@ const border = (
 );
 
 export default async function ApparelPage() {
-  const { products, settings } = await getData();
+  const { products, settings, whatsappNumber } = await getData();
 
   return (
     <>
@@ -59,6 +63,7 @@ export default async function ApparelPage() {
       <StoreCatalog products={products} storeHref="/apparel" />
 
       {border}
+      <Footer whatsappNumber={whatsappNumber} />
     </>
   );
 }

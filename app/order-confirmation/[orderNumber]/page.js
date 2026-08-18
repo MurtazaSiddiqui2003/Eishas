@@ -3,6 +3,7 @@ import { connectDB } from "@/lib/mongodb";
 import Order from "@/models/Order";
 import PaymentSettings from "@/models/PaymentSettings";
 import { formatPrice } from "@/lib/currency";
+import Footer from "@/components/Footer";
 
 export const dynamic = "force-dynamic";
 
@@ -31,8 +32,8 @@ export default async function OrderConfirmationPage({ params }) {
     : null;
 
   return (
-    <main className="min-h-screen bg-[var(--ivory)] text-[var(--ink)] font-['Inter']">
-      <div className="max-w-[560px] mx-auto px-6 py-14">
+    <main className="min-h-screen bg-[var(--ivory)] text-[var(--ink)] font-['Inter'] flex flex-col">
+      <div className="w-full max-w-[560px] mx-auto px-6 py-14 flex-1">
         <a href="/" className="block text-center font-['Cormorant_Garamond'] text-2xl mb-8">
           Eisha&rsquo;s
         </a>
@@ -117,6 +118,7 @@ export default async function OrderConfirmationPage({ params }) {
           </div>
         </div>
       </div>
+      <Footer variant="shell" whatsappNumber={settings?.whatsappNumber} />
     </main>
   );
 }

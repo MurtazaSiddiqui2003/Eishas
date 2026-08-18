@@ -2,6 +2,7 @@
 
 import { useCart } from "@/context/CartContext";
 import { formatPrice } from "@/lib/currency";
+import Footer from "@/components/Footer";
 
 const storeLabels = {
   apparel: "Eisha's Collection",
@@ -19,7 +20,8 @@ export default function CartPage() {
   }, {});
 
   return (
-    <main className="min-h-screen bg-[var(--ivory)] text-[var(--ink)] max-w-[680px] mx-auto px-6 pt-10 pb-20 font-['Inter']">
+    <main className="min-h-screen bg-[var(--ivory)] text-[var(--ink)] flex flex-col font-['Inter']">
+      <div className="w-full max-w-[680px] mx-auto px-6 pt-10 pb-20 flex-1">
       <a href="/" className="block text-center font-['Cormorant_Garamond'] text-2xl mb-8">
         Eisha&rsquo;s
       </a>
@@ -97,6 +99,8 @@ export default function CartPage() {
           </a>
         </>
       )}
+      </div>
+      <Footer variant="shell" />
     </main>
   );
 }
