@@ -1,0 +1,92 @@
+.main {
+  min-height: 100vh;
+  background: var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+}
+
+.card {
+  width: 100%;
+  max-width: 380px;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.wordmark {
+  font-family: "Cormorant Garamond", serif;
+  font-size: 1.8rem;
+  color: var(--ivory);
+  text-align: center;
+  margin-bottom: 0.5rem;
+}
+
+.heading {
+  font-family: "Inter", sans-serif;
+  font-size: 1rem;
+  color: var(--ivory);
+  opacity: 0.8;
+  text-align: center;
+  margin-bottom: 0.5rem;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.input {
+  padding: 0.8rem 1rem;
+  background: rgba(245, 239, 230, 0.06);
+  border: 1px solid rgba(245, 239, 230, 0.15);
+  color: var(--ivory);
+  font-family: "Inter", sans-serif;
+  font-size: 0.9rem;
+}
+
+.input::placeholder {
+  color: rgba(245, 239, 230, 0.4);
+}
+
+.error {
+  color: #e08585;
+  font-family: "Inter", sans-serif;
+  font-size: 0.8rem;
+}
+
+.submit {
+  padding: 0.85rem;
+  background: var(--gold);
+  color: var(--ink);
+  font-family: "Inter", sans-serif;
+  font-weight: 500;
+  font-size: 0.9rem;
+  letter-spacing: 0.02em;
+}
+
+.submit:disabled {
+  opacity: 0.6;
+}
+
+.google {
+  padding: 0.8rem;
+  border: 1px solid rgba(245, 239, 230, 0.25);
+  color: var(--ivory);
+  font-family: "Inter", sans-serif;
+  font-size: 0.85rem;
+}
+
+.toggle {
+  text-align: center;
+  font-family: "Inter", sans-serif;
+  font-size: 0.8rem;
+  color: rgba(245, 239, 230, 0.6);
+  margin-top: 0.25rem;
+}
+
+.toggle:hover {
+  color: var(--gold);
+}
