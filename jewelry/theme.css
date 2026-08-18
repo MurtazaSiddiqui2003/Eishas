@@ -1,0 +1,17 @@
+.jewelry-theme {
+  --bg: #0d0d0d;
+  --ink: #ede8df;
+  --accent: #d4af37; /* champagne gold */
+  --accent-2: #4a0e17; /* deep burgundy */
+  --gold: #d4af37;
+  --heading-weight: 500;
+
+  --font-display: var(--jewelry-display), serif;
+  --font-body: var(--jewelry-body), sans-serif;
+
+  background: var(--bg);
+  color: var(--ink);
+  min-height: 100vh;
+  font-family: var(--font-body);
+  font-weight: 300;
+}

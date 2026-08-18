@@ -1,0 +1,106 @@
+"use client";
+
+import { useCart } from "@/context/CartContext";
+import { formatPrice } from "@/lib/currency";
+import Footer from "@/components/Footer";
+
+const storeLabels = {
+  apparel: "Eisha's Collection",
+  beauty: "Eisha's Beauty",
+  jewelry: "Eisha's Jewelry",
+};
+
+export default function CartPage() {
+  const { items, removeItem, updateQuantity, total } = useCart();
+
+  const grouped = items.reduce((acc, item) => {
+    acc[item.store] = acc[item.store] || [];
+    acc[item.store].push(item);
+    return acc;
+  }, {});
+
+  return (
+    <main className="min-h-screen bg-[var(--ivory)] text-[var(--ink)] flex flex-col font-['Inter']">
+      <div className="w-full max-w-[680px] mx-auto px-6 pt-10 pb-20 flex-1">
+      <a href="/" className="block text-center font-['Cormorant_Garamond'] text-2xl mb-8">
+        Eisha&rsquo;s
+      </a>
+      <h1 className="font-['Cormorant_Garamond'] text-[1.8rem] mb-8">Your bag</h1>
+
+      {items.length === 0 ? (
+        <p className="opacity-75 leading-relaxed">
+          Your bag is empty. Browse{" "}
+          <a href="/apparel" className="text-[var(--gold-deep)] underline">Collection</a>,{" "}
+          <a href="/beauty" className="text-[var(--gold-deep)] underline">Beauty</a>, or{" "}
+          <a href="/jewelry" className="text-[var(--gold-deep)] underline">Jewelry</a>.
+        </p>
+      ) : (
+        <>
+          {Object.entries(grouped).map(([store, storeItems]) => (
+            <section key={store} className="mb-10">
+              <h2 className="font-['Cormorant_Garamond'] text-lg text-[var(--gold-deep)] mb-4 pb-2 border-b border-black/10">
+                {storeLabels[store]}
+              </h2>
+              {storeItems.map((item) => (
+                <div
+                  key={`${item.productId}-${item.size}`}
+                  className="flex gap-4 py-4 border-b border-black/[0.07]"
+                >
+                  {item.image && (
+                    <img src={item.image} alt={item.name} className="w-[70px] h-[90px] object-cover shrink-0" />
+                  )}
+                  <div className="flex-1">
+                    <p className="text-[0.95rem] mb-1">{item.name}</p>
+                    {item.size && <p className="text-xs opacity-60 mb-2">Size: {item.size}</p>}
+                    <div className="flex items-center gap-3 text-sm">
+                      <button
+                        className="w-[1.6rem] h-[1.6rem] border border-black/20"
+                        onClick={() =>
+                          updateQuantity(item.productId, item.size, Math.max(1, item.quantity - 1))
+                        }
+                      >
+                        −
+                      </button>
+                      <span>{item.quantity}</span>
+                      <button
+                        className="w-[1.6rem] h-[1.6rem] border border-black/20"
+                        onClick={() =>
+                          updateQuantity(item.productId, item.size, item.quantity + 1)
+                        }
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
+                  <div className="text-right text-sm flex flex-col justify-between">
+                    <p>{formatPrice(item.price * item.quantity)}</p>
+                    <button
+                      className="text-xs opacity-50 hover:opacity-100 hover:text-[#e08585] mt-2"
+                      onClick={() => removeItem(item.productId, item.size)}
+                    >
+                      Remove
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </section>
+          ))}
+
+          <div className="flex justify-between font-['Cormorant_Garamond'] text-xl py-6 border-t border-black/15">
+            <span>Total</span>
+            <span>{formatPrice(total)}</span>
+          </div>
+
+          <a
+            href="/checkout"
+            className="block text-center w-full py-4 bg-[var(--gold)] text-[var(--ink)] font-medium tracking-wide"
+          >
+            Checkout
+          </a>
+        </>
+      )}
+      </div>
+      <Footer variant="shell" />
+    </main>
+  );
+}
