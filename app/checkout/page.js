@@ -46,7 +46,16 @@ export default function CheckoutPage() {
         }),
       });
 
-      const data = await res.json();
+      let data;
+      try {
+        data = await res.json();
+      } catch {
+        // The server returned something that wasn't JSON at all — a real
+        // crash rather than a normal error response. With the try/catch
+        // fix in the API route this shouldn't happen anymore, but this is
+        // a safety net so a customer never sees a raw parsing error.
+        throw new Error("Something went wrong on our end — please try again in a moment.");
+      }
 
       if (!res.ok) throw new Error(data.error || "Could not place order");
 

@@ -3,23 +3,33 @@ import Product from "@/models/Product";
 
 // GET /api/products?store=apparel  -> list products, optionally filtered by store
 export async function GET(req) {
-  await connectDB();
+  try {
+    await connectDB();
 
-  const { searchParams } = new URL(req.url);
-  const store = searchParams.get("store");
+    const { searchParams } = new URL(req.url);
+    const store = searchParams.get("store");
 
-  const query = store ? { store } : {};
-  const products = await Product.find(query).sort({ createdAt: -1 });
+    const query = store ? { store } : {};
+    const products = await Product.find(query).sort({ createdAt: -1 });
 
-  return Response.json(products);
+    return Response.json(products);
+  } catch (err) {
+    console.error("GET /api/products failed:", err);
+    return Response.json({ error: err.message || "Failed to load products" }, { status: 500 });
+  }
 }
 
 // POST /api/products -> create a product (admin panel uses this)
 export async function POST(req) {
-  await connectDB();
+  try {
+    await connectDB();
 
-  const body = await req.json();
-  const product = await Product.create(body);
+    const body = await req.json();
+    const product = await Product.create(body);
 
-  return Response.json(product, { status: 201 });
+    return Response.json(product, { status: 201 });
+  } catch (err) {
+    console.error("POST /api/products failed:", err);
+    return Response.json({ error: err.message || "Could not save product" }, { status: 500 });
+  }
 }
