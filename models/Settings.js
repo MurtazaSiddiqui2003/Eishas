@@ -17,6 +17,7 @@ const SettingsSchema = new mongoose.Schema(
     doorImageMobile: { type: String }, // optional — falls back to doorImage if empty
     heroImage: { type: String }, // shown as the store's own hero banner (desktop)
     heroImageMobile: { type: String }, // optional — falls back to heroImage if empty
+    instagramUrl: { type: String }, // this store's own Instagram, shown in the footer
   },
   { timestamps: true }
 );

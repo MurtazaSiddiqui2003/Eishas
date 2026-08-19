@@ -1,9 +1,10 @@
 // variant="store"  → sits inside a store's themed wrapper, picks up its
 //                     colors/fonts automatically via the theme.* classes
-// variant="shell"   → used on cart/checkout/order-confirmation, which use
-//                     the neutral ivory shell instead of a store theme
+// variant="shell"   → used on cart/checkout/order-confirmation/contact,
+//                     which use the neutral ivory shell instead of a store theme
+// instagramUrl      → only relevant for variant="store" (each store has its own)
 
-export default function Footer({ variant = "store", whatsappNumber }) {
+export default function Footer({ variant = "store", whatsappNumber, contactPhone, instagramUrl }) {
   const isStore = variant === "store";
 
   const wrapClass = isStore
@@ -21,6 +22,7 @@ export default function Footer({ variant = "store", whatsappNumber }) {
   const whatsappLink = whatsappNumber
     ? `https://wa.me/${whatsappNumber.replace(/\D/g, "")}`
     : null;
+  const phoneLink = contactPhone ? `tel:${contactPhone.replace(/\s/g, "")}` : null;
 
   return (
     <footer className={`${wrapClass} px-8 py-12`}>
@@ -42,14 +44,25 @@ export default function Footer({ variant = "store", whatsappNumber }) {
           <a href="/cart" className={linkClass}>Cart</a>
         </div>
 
-        {whatsappLink && (
-          <div>
-            <p className={headingClass}>Contact</p>
+        <div>
+          <p className={headingClass}>Get in touch</p>
+          {instagramUrl && (
+            <a href={instagramUrl} target="_blank" rel="noopener noreferrer" className={linkClass}>
+              Instagram
+            </a>
+          )}
+          {whatsappLink && (
             <a href={whatsappLink} target="_blank" rel="noopener noreferrer" className={linkClass}>
               WhatsApp
             </a>
-          </div>
-        )}
+          )}
+          {phoneLink && (
+            <a href={phoneLink} className={linkClass}>
+              {contactPhone}
+            </a>
+          )}
+          <a href="/contact" className={linkClass}>Contact page</a>
+        </div>
       </div>
 
       <p

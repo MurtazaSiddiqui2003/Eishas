@@ -26,6 +26,9 @@ export default function StoreNav({ storeName, homeHref, logo }) {
       </a>
 
       <div className="flex items-center gap-6 font-body text-sm">
+        <a href={`${homeHref}/collection`} className="text-theme-ink opacity-75 hover:opacity-100 hover:text-theme-accent transition-all">
+          Shop
+        </a>
         <a href="/cart" className="text-theme-ink opacity-75 hover:opacity-100 hover:text-theme-accent transition-all">
           Cart{count > 0 ? ` (${count})` : ""}
         </a>

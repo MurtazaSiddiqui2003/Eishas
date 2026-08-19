@@ -9,7 +9,13 @@ const emptyForm = {
   iban: "",
   easypaisaNumber: "",
   easypaisaName: "",
+  jazzcashNumber: "",
+  jazzcashName: "",
+  sadapayNumber: "",
+  sadapayName: "",
+  codEnabled: true,
   whatsappNumber: "",
+  contactPhone: "",
   instructions: "",
 };
 
@@ -25,7 +31,10 @@ export default function PaymentPanel() {
   }, []);
 
   function update(field) {
-    return (e) => setForm((f) => ({ ...f, [field]: e.target.value }));
+    return (e) => {
+      const value = e.target.type === "checkbox" ? e.target.checked : e.target.value;
+      setForm((f) => ({ ...f, [field]: value }));
+    };
   }
 
   async function handleSubmit(e) {
@@ -54,10 +63,10 @@ export default function PaymentPanel() {
     <div className="p-8 max-w-[560px] mx-auto">
       <form onSubmit={handleSubmit} className="flex flex-col gap-3 bg-white p-6 border border-[#e2e2de]">
         <div className="mb-2">
-          <h2 className="text-sm mb-1">Payment details</h2>
+          <h2 className="text-sm mb-1">Payment &amp; contact details</h2>
           <p className="text-xs text-[#888]">
-            Shown to customers on the order confirmation page after checkout, so they
-            know where to send payment. Leave sections blank to hide them.
+            A payment method only shows up at checkout once its details are filled
+            in here. Leave a section blank to hide that method.
           </p>
         </div>
 
@@ -71,7 +80,20 @@ export default function PaymentPanel() {
         <input className={inputClass} placeholder="EasyPaisa number" value={form.easypaisaNumber} onChange={update("easypaisaNumber")} />
         <input className={inputClass} placeholder="Account name" value={form.easypaisaName} onChange={update("easypaisaName")} />
 
-        <p className="text-xs text-[#666] font-medium mt-3">Payment proof</p>
+        <p className="text-xs text-[#666] font-medium mt-3">JazzCash</p>
+        <input className={inputClass} placeholder="JazzCash number" value={form.jazzcashNumber} onChange={update("jazzcashNumber")} />
+        <input className={inputClass} placeholder="Account name" value={form.jazzcashName} onChange={update("jazzcashName")} />
+
+        <p className="text-xs text-[#666] font-medium mt-3">SadaPay</p>
+        <input className={inputClass} placeholder="SadaPay number" value={form.sadapayNumber} onChange={update("sadapayNumber")} />
+        <input className={inputClass} placeholder="Account name" value={form.sadapayName} onChange={update("sadapayName")} />
+
+        <label className="flex items-center gap-1.5 flex-row text-sm mt-3">
+          <input type="checkbox" checked={form.codEnabled} onChange={update("codEnabled")} className="w-auto" />
+          Allow Cash on Delivery
+        </label>
+
+        <p className="text-xs text-[#666] font-medium mt-4">Contact</p>
         <input
           className={inputClass}
           placeholder="WhatsApp number (e.g. 923001234567, no + or spaces)"
@@ -79,8 +101,14 @@ export default function PaymentPanel() {
           onChange={update("whatsappNumber")}
         />
         <p className="text-xs text-[#888] -mt-1">
-          Customers get a button after checkout to send you their payment screenshot here.
+          Used for the payment-proof button after checkout, and the footer/contact page link.
         </p>
+        <input
+          className={inputClass}
+          placeholder="Contact phone number (optional, shown as a call link)"
+          value={form.contactPhone}
+          onChange={update("contactPhone")}
+        />
 
         <textarea
           className={`${inputClass} min-h-[70px] resize-y mt-2`}
@@ -100,7 +128,7 @@ export default function PaymentPanel() {
           disabled={saving}
           className="py-3 mt-2 bg-[#1a1a1a] text-white text-sm disabled:opacity-50"
         >
-          {saving ? "Saving…" : "Save payment details"}
+          {saving ? "Saving…" : "Save"}
         </button>
       </form>
     </div>

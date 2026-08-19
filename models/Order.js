@@ -34,13 +34,14 @@ const OrderSchema = new mongoose.Schema(
 
     total: { type: Number, required: true },
 
-    // Kept separate from fulfillment status below — a manual-transfer order
-    // sits in "pending_verification" until you confirm the money came in.
-    // A future real gateway would just set this via webhook instead.
+    // Kept separate from fulfillment status below — an order sits in
+    // "pending_verification" until you confirm the money came in (for COD,
+    // this just means "not yet collected"). A future real gateway would
+    // just set this via webhook instead.
     paymentMethod: {
       type: String,
-      enum: ["manual_transfer"],
-      default: "manual_transfer",
+      enum: ["easypaisa", "jazzcash", "sadapay", "bank_transfer", "cod"],
+      required: true,
     },
     paymentStatus: {
       type: String,

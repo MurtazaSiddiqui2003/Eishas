@@ -15,35 +15,39 @@ One landing page, three stores: **Eisha's Collection** (apparel), **Eisha's Beau
 ```
 app/
   page.js                 → landing page, full-height 3-way image split
-  apparel/                 → Eisha's Collection (maroon/gold, Fraunces)
+  apparel/                 → Eisha's Collection home (maroon/gold, Fraunces)
+    collection/                → full catalog: search, filter, sort
     [slug]/                    → product detail page
-  beauty/                   → Eisha's Beauty (blush/sage, Manrope)
+  beauty/                   → Eisha's Beauty home (blush/sage, Manrope)
+    collection/
     [slug]/
-  jewelry/                    → Eisha's Jewelry (onyx/gold, Bodoni Moda)
+  jewelry/                    → Eisha's Jewelry home (onyx/gold, Bodoni Moda)
+    collection/
     [slug]/
   cart/                          → shared cart, grouped by store
-  checkout/                       → shipping form → creates an order
-  order-confirmation/[orderNumber] → payment instructions + WhatsApp proof button
+  checkout/                       → shipping form, payment method → creates an order
+  order-confirmation/[orderNumber] → payment instructions for the chosen method
+  contact/                          → WhatsApp/phone/Instagram links, accepted payment methods
   login/                          → shared sign in / sign up
   admin/                           → password-gated: Products, Store design, Orders, Payment tabs
   api/
     auth/[...nextauth]            → NextAuth handler
     signup                         → customer account creation
     products, products/[id]         → list/create/delete/update products
-    settings                          → per-store logo/hero/door image settings
+    settings                          → per-store logo/hero/door image/Instagram settings
     orders, orders/[id]                → create/list orders, update payment/fulfillment status
-    payment-settings                     → bank/EasyPaisa details shown at checkout
+    payment-settings                     → bank/EasyPaisa/JazzCash/SadaPay/contact details
     admin/login                        → admin password check
 lib/
   mongodb.js     → cached DB connection
   cloudinary.js  → server-side Cloudinary config (available for future signed ops)
-  auth.js        → NextAuth options
+  auth.js        → NextAuth options (Google provider auto-disables without real credentials)
   currency.js    → PKR price formatting used everywhere
   orderNumber.js → generates sequential ES-0001 style order numbers
 models/
   Product.js        → shared schema, has a `store` field (apparel/beauty/jewelry)
-  Settings.js        → one doc per store: logo, doorImage, heroImage (+ mobile variants)
-  PaymentSettings.js  → single doc: bank/EasyPaisa/WhatsApp details
+  Settings.js        → one doc per store: logo, doorImage, heroImage (+ mobile variants), instagramUrl
+  PaymentSettings.js  → single doc: all payment methods + WhatsApp/phone/instructions
   Counter.js           → backs the sequential order number generator
   User.js
   Order.js
@@ -52,6 +56,7 @@ context/
 components/
   ImageUploader.js → drag-and-drop upload straight to Cloudinary
   HeroBanner.js → hero banner with optional separate mobile image (art-directed crop, not just resized)
+  Footer.js → adapts to store theme or the neutral shell; Instagram/WhatsApp/phone links
   StoreNav.js, ProductGrid.js, FeaturedProducts.js, StoreCatalog.js, ProductDetail.js
   AdminLogin.js
   admin/OrdersPanel.js, admin/PaymentPanel.js
@@ -124,29 +129,46 @@ Go to `/admin`, enter the admin password. Two tabs per store:
 
 ## Checkout, orders & payment
 
-Checkout is manual-transfer for now (bank / EasyPaisa), designed so a real
-payment gateway can be dropped in later without rebuilding the flow:
+Checkout offers a choice of manual payment methods, designed so a real
+gateway can be dropped in later without rebuilding the flow:
 
-1. Customer fills out shipping details at `/checkout` and places the order
+1. Customer fills out shipping details at `/checkout` and picks a payment
+   method — **EasyPaisa, JazzCash, SadaPay, Bank Transfer, or Cash on
+   Delivery**. Only methods you've actually configured in the admin
+   **Payment** tab show up as options; COD has its own on/off toggle since
+   it doesn't have account details to check for.
 2. An order is created with a sequential order number (`ES-0001`, `ES-0002`, ...),
    stock is decremented, and `paymentStatus` starts as `pending_verification`
-3. They land on `/order-confirmation/[orderNumber]`, which shows your bank/
-   EasyPaisa details (from the admin Payment tab) and a WhatsApp button to
-   send payment proof
+   (for COD this just means "not yet collected")
+3. They land on `/order-confirmation/[orderNumber]`, which shows instructions
+   for whichever method they picked, plus a WhatsApp button to send payment
+   proof (skipped for COD, since there's nothing to send proof of yet)
 4. You confirm payment came in and mark the order **Paid** from the admin
    **Orders** tab, and update fulfillment status (processing/shipped/etc.)
    from there too, with a Print invoice button for each order
 
-To swap in a real gateway later (Safepay, JazzCash, EasyPaisa merchant API,
-etc.): the pieces that change are the payment step in `/checkout` and
-`paymentMethod`/`paymentStatus` on the `Order` model — everything else
-(order numbers, stock, the Orders admin tab) stays the same.
+To swap in a real gateway later (Safepay, a direct EasyPaisa/JazzCash
+merchant API, etc.): the pieces that change are the payment step in
+`/checkout` and `paymentMethod`/`paymentStatus` on the `Order` model —
+everything else (order numbers, stock, the Orders admin tab) stays the same.
 
 All prices display in PKR (`Rs 1,200` format) via `lib/currency.js`.
 
+## Collection pages & Contact page
+
+Each store's home page (hero + featured products) is now separate from its
+**Collection** page (`/apparel/collection`, etc.) — the full catalog with
+search, category filter, and sort. `StoreNav`'s "Shop" link and the "Shop
+the full collection" button on each home page both point there.
+
+`/contact` is a site-wide page (not store-specific) showing your WhatsApp
+and phone links, each store's Instagram (set per-store in the admin Design
+tab), and a summary of which payment methods you currently accept. The
+footer links to it from everywhere.
+
 ## What's not built yet (on purpose — this is a solid base to build on)
 
-- **A real payment gateway** — currently manual bank/EasyPaisa transfer with
+- **A real payment gateway** — currently manual transfer/COD with
   admin-side verification (see above). Fine to start with, worth upgrading
   once you're getting consistent volume.
 - **Order history** on the customer account page (the `Order` model tracks
