@@ -3,7 +3,10 @@ import { authOptions } from "@/lib/auth";
 import { connectDB } from "@/lib/mongodb";
 import Order from "@/models/Order";
 import Product from "@/models/Product";
+import PaymentSettings from "@/models/PaymentSettings";
 import { getNextOrderNumber } from "@/lib/orderNumber";
+
+const VALID_METHODS = ["easypaisa", "jazzcash", "sadapay", "bank_transfer", "cod"];
 
 // GET -> list orders, newest first (used by the admin Orders tab)
 export async function GET() {
@@ -25,13 +28,31 @@ export async function POST(req) {
     await connectDB();
 
     const body = await req.json();
-    const { items, shippingAddress, customerName, customerEmail } = body;
+    const { items, shippingAddress, customerName, customerEmail, paymentMethod } = body;
 
     if (!items || items.length === 0) {
       return Response.json({ error: "Cart is empty" }, { status: 400 });
     }
     if (!customerName || !shippingAddress?.line1 || !shippingAddress?.city || !shippingAddress?.phone) {
       return Response.json({ error: "Missing required shipping details" }, { status: 400 });
+    }
+    if (!VALID_METHODS.includes(paymentMethod)) {
+      return Response.json({ error: "Please choose a payment method" }, { status: 400 });
+    }
+
+    // Confirm the chosen method is actually configured/enabled — guards
+    // against someone submitting a method that isn't set up (or was
+    // turned off) since the checkout page loaded.
+    const settings = await PaymentSettings.findOne({ key: "default" });
+    const isAvailable =
+      (paymentMethod === "bank_transfer" && settings?.bankName && settings?.accountNumber) ||
+      (paymentMethod === "easypaisa" && settings?.easypaisaNumber) ||
+      (paymentMethod === "jazzcash" && settings?.jazzcashNumber) ||
+      (paymentMethod === "sadapay" && settings?.sadapayNumber) ||
+      (paymentMethod === "cod" && settings?.codEnabled !== false);
+
+    if (!isAvailable) {
+      return Response.json({ error: "That payment method isn't available right now" }, { status: 400 });
     }
 
     // Check stock for every item before committing to anything.
@@ -58,6 +79,7 @@ export async function POST(req) {
       user: session?.user?.id || undefined,
       customerName,
       customerEmail,
+      paymentMethod,
       items: items.map((i) => ({
         product: i.productId,
         store: i.store,
