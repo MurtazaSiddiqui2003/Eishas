@@ -24,7 +24,11 @@ export default async function BeautyProductPage({ params }) {
     <>
       <StoreNav storeName="Eisha's Beauty" homeHref="/beauty" logo={settings?.logo} />
       <ProductDetail product={JSON.parse(JSON.stringify(product))} />
-      <Footer whatsappNumber={paymentSettings?.whatsappNumber} />
+      <Footer
+        whatsappNumber={paymentSettings?.whatsappNumber}
+        contactPhone={paymentSettings?.contactPhone}
+        instagramUrl={settings?.instagramUrl}
+      />
     </>
   );
 }

@@ -3,8 +3,7 @@ import Product from "@/models/Product";
 import Settings from "@/models/Settings";
 import PaymentSettings from "@/models/PaymentSettings";
 import StoreNav from "@/components/StoreNav";
-import FeaturedProducts from "@/components/FeaturedProducts";
-import HeroBanner from "@/components/HeroBanner";
+import StoreCatalog from "@/components/StoreCatalog";
 import Footer from "@/components/Footer";
 
 export const dynamic = "force-dynamic";
@@ -24,45 +23,23 @@ async function getData() {
   };
 }
 
-const vitrineFrame = (
-  <div
-    className="absolute inset-3 pointer-events-none"
-    style={{ border: "1px solid color-mix(in srgb, var(--gold) 35%, transparent)" }}
-    aria-hidden="true"
-  />
-);
-
-export default async function JewelryPage() {
+export default async function JewelryCollectionPage() {
   const { products, settings, whatsappNumber, contactPhone } = await getData();
 
   return (
     <>
       <StoreNav storeName="Eisha's Jewelry" homeHref="/jewelry" logo={settings?.logo} />
 
-      <HeroBanner
-        desktop={settings?.heroImage}
-        mobile={settings?.heroImageMobile}
-        gradientClassName="bg-gradient-to-t from-black/60 to-transparent"
-        overlay={vitrineFrame}
-      >
+      <div className="text-center pt-12 pb-2">
         <p className="font-body text-xs tracking-[0.22em] uppercase text-[var(--gold)] mb-2">
-          The Vitrine
+          The Full Collection
         </p>
-        <h1 className="font-display font-[var(--heading-weight)] text-[clamp(1.8rem,4vw,2.6rem)] text-white">
+        <h1 className="font-display font-[var(--heading-weight)] text-2xl text-theme-ink">
           Earrings &middot; Sets &middot; Bangles
         </h1>
-      </HeroBanner>
-
-      <FeaturedProducts products={products} storeHref="/jewelry" />
-
-      <div className="text-center pb-14 pt-2">
-        <a
-          href="/jewelry/collection"
-          className="inline-block px-8 py-3.5 border border-theme-accent text-theme-accent font-body text-sm uppercase tracking-wide hover:bg-theme-accent hover:text-theme-bg transition-colors"
-        >
-          Shop the full collection
-        </a>
       </div>
+
+      <StoreCatalog products={products} storeHref="/jewelry" />
 
       <Footer whatsappNumber={whatsappNumber} contactPhone={contactPhone} instagramUrl={settings?.instagramUrl} />
     </>

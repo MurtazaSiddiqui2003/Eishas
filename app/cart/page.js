@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { useCart } from "@/context/CartContext";
 import { formatPrice } from "@/lib/currency";
 import Footer from "@/components/Footer";
@@ -12,6 +13,14 @@ const storeLabels = {
 
 export default function CartPage() {
   const { items, removeItem, updateQuantity, total } = useCart();
+  const [paymentSettings, setPaymentSettings] = useState(null);
+
+  useEffect(() => {
+    fetch("/api/payment-settings")
+      .then((res) => res.json())
+      .then(setPaymentSettings)
+      .catch(() => setPaymentSettings({}));
+  }, []);
 
   const grouped = items.reduce((acc, item) => {
     acc[item.store] = acc[item.store] || [];
@@ -100,7 +109,7 @@ export default function CartPage() {
         </>
       )}
       </div>
-      <Footer variant="shell" />
+      <Footer variant="shell" whatsappNumber={paymentSettings?.whatsappNumber} contactPhone={paymentSettings?.contactPhone} />
     </main>
   );
 }

@@ -1,9 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useCart } from "@/context/CartContext";
 import { formatPrice } from "@/lib/currency";
 import Footer from "@/components/Footer";
+
+const METHOD_LABELS = {
+  easypaisa: "EasyPaisa",
+  jazzcash: "JazzCash",
+  sadapay: "SadaPay",
+  bank_transfer: "Bank Transfer",
+  cod: "Cash on Delivery",
+};
 
 export default function CheckoutPage() {
   const { items, total, clearCart } = useCart();
@@ -16,8 +24,39 @@ export default function CheckoutPage() {
     province: "",
     postalCode: "",
   });
+  const [paymentSettings, setPaymentSettings] = useState(null);
+  const [paymentMethod, setPaymentMethod] = useState(null);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/payment-settings")
+      .then((res) => res.json())
+      .then(setPaymentSettings)
+      .catch(() => setPaymentSettings({}));
+  }, []);
+
+  // Only offer a method once it's actually been set up in the admin
+  // Payment tab — this is what keeps the checkout page in sync with
+  // whatever you've configured, without a separate "enable" toggle for
+  // each transfer method (COD is the one exception, since there's no
+  // account detail whose presence would otherwise imply it's ready).
+  const availableMethods = useMemo(() => {
+    if (!paymentSettings) return [];
+    const methods = [];
+    if (paymentSettings.bankName && paymentSettings.accountNumber) methods.push("bank_transfer");
+    if (paymentSettings.easypaisaNumber) methods.push("easypaisa");
+    if (paymentSettings.jazzcashNumber) methods.push("jazzcash");
+    if (paymentSettings.sadapayNumber) methods.push("sadapay");
+    if (paymentSettings.codEnabled !== false) methods.push("cod");
+    return methods;
+  }, [paymentSettings]);
+
+  useEffect(() => {
+    if (!paymentMethod && availableMethods.length > 0) {
+      setPaymentMethod(availableMethods[0]);
+    }
+  }, [availableMethods, paymentMethod]);
 
   function update(field) {
     return (e) => setForm((f) => ({ ...f, [field]: e.target.value }));
@@ -26,6 +65,12 @@ export default function CheckoutPage() {
   async function handleSubmit(e) {
     e.preventDefault();
     setError("");
+
+    if (!paymentMethod) {
+      setError("Please choose a payment method");
+      return;
+    }
+
     setSubmitting(true);
 
     try {
@@ -42,6 +87,7 @@ export default function CheckoutPage() {
             postalCode: form.postalCode || undefined,
             phone: form.phone,
           },
+          paymentMethod,
           items,
         }),
       });
@@ -104,16 +150,46 @@ export default function CheckoutPage() {
             </div>
             <input className={inputClass} placeholder="Postal code (optional)" value={form.postalCode} onChange={update("postalCode")} />
 
+            <p className="text-xs uppercase tracking-wide opacity-60 mt-3 mb-1">Payment method</p>
+
+            {paymentSettings === null ? (
+              <p className="text-sm opacity-50">Loading payment options…</p>
+            ) : availableMethods.length === 0 ? (
+              <p className="text-sm text-[#b3261e]">
+                No payment methods are set up yet — please contact us directly to place this order.
+              </p>
+            ) : (
+              <div className="flex flex-col gap-2">
+                {availableMethods.map((method) => (
+                  <label
+                    key={method}
+                    className={`flex items-center gap-3 px-4 py-3 border cursor-pointer text-sm ${
+                      paymentMethod === method ? "border-[var(--ink)] bg-white" : "border-black/15"
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="paymentMethod"
+                      value={method}
+                      checked={paymentMethod === method}
+                      onChange={() => setPaymentMethod(method)}
+                    />
+                    {METHOD_LABELS[method]}
+                  </label>
+                ))}
+              </div>
+            )}
+
             <p className="text-xs opacity-60 mt-1 leading-relaxed">
               After placing your order, you&rsquo;ll get an order number and instructions
-              for sending payment via bank transfer or EasyPaisa.
+              for completing payment.
             </p>
 
             {error && <p className="text-sm text-[#b3261e]">{error}</p>}
 
             <button
               type="submit"
-              disabled={submitting}
+              disabled={submitting || availableMethods.length === 0}
               className="mt-2 py-3.5 bg-[var(--ink)] text-[var(--ivory)] font-medium text-sm tracking-wide disabled:opacity-50"
             >
               {submitting ? "Placing order…" : "Place order"}
@@ -140,7 +216,7 @@ export default function CheckoutPage() {
           </div>
         </div>
       </div>
-      <Footer variant="shell" />
+      <Footer variant="shell" whatsappNumber={paymentSettings?.whatsappNumber} contactPhone={paymentSettings?.contactPhone} />
     </main>
   );
 }

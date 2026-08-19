@@ -19,13 +19,64 @@ async function getData(orderNumber) {
   };
 }
 
+function PaymentInstructions({ method, settings }) {
+  if (method === "bank_transfer") {
+    return (
+      <div className="text-sm space-y-1">
+        <p className="font-medium mb-1">Bank Transfer</p>
+        <p className="opacity-75">{settings.bankName}</p>
+        {settings.accountTitle && <p className="opacity-75">Account Title: {settings.accountTitle}</p>}
+        {settings.accountNumber && <p className="opacity-75">Account #: {settings.accountNumber}</p>}
+        {settings.iban && <p className="opacity-75">IBAN: {settings.iban}</p>}
+      </div>
+    );
+  }
+  if (method === "easypaisa") {
+    return (
+      <div className="text-sm space-y-1">
+        <p className="font-medium mb-1">EasyPaisa</p>
+        <p className="opacity-75">{settings.easypaisaNumber}</p>
+        {settings.easypaisaName && <p className="opacity-75">Account Name: {settings.easypaisaName}</p>}
+      </div>
+    );
+  }
+  if (method === "jazzcash") {
+    return (
+      <div className="text-sm space-y-1">
+        <p className="font-medium mb-1">JazzCash</p>
+        <p className="opacity-75">{settings.jazzcashNumber}</p>
+        {settings.jazzcashName && <p className="opacity-75">Account Name: {settings.jazzcashName}</p>}
+      </div>
+    );
+  }
+  if (method === "sadapay") {
+    return (
+      <div className="text-sm space-y-1">
+        <p className="font-medium mb-1">SadaPay</p>
+        <p className="opacity-75">{settings.sadapayNumber}</p>
+        {settings.sadapayName && <p className="opacity-75">Account Name: {settings.sadapayName}</p>}
+      </div>
+    );
+  }
+  if (method === "cod") {
+    return (
+      <p className="text-sm opacity-75">
+        Pay in cash when your order arrives. No payment needed right now.
+      </p>
+    );
+  }
+  return null;
+}
+
 export default async function OrderConfirmationPage({ params }) {
   const { order, settings } = await getData(params.orderNumber);
 
   if (!order) notFound();
 
+  const isCod = order.paymentMethod === "cod";
+
   const whatsappText = encodeURIComponent(
-    `Hi! I just placed order ${order.orderNumber} on Eisha's and I'm sending payment proof.`
+    `Hi! I just placed order ${order.orderNumber} on Eisha's${isCod ? "" : " and I'm sending payment proof"}.`
   );
   const whatsappLink = settings?.whatsappNumber
     ? `https://wa.me/${settings.whatsappNumber.replace(/\D/g, "")}?text=${whatsappText}`
@@ -44,51 +95,32 @@ export default async function OrderConfirmationPage({ params }) {
           </p>
           <h1 className="font-['Cormorant_Garamond'] text-3xl mb-2">{order.orderNumber}</h1>
           <p className="text-sm opacity-70">
-            Thank you, {order.customerName}. Save this order number — you&rsquo;ll need it when
-            sending payment.
+            Thank you, {order.customerName}.{" "}
+            {isCod
+              ? "Your order is being prepared."
+              : "Save this order number — you'll need it when sending payment."}
           </p>
         </div>
 
         <div className="bg-white border border-black/10 p-6 mb-6">
-          <h2 className="font-['Cormorant_Garamond'] text-lg mb-4">Payment instructions</h2>
+          <h2 className="font-['Cormorant_Garamond'] text-lg mb-4">
+            {isCod ? "Payment" : "Payment instructions"}
+          </h2>
 
-          {!settings?.bankName && !settings?.easypaisaNumber ? (
-            <p className="text-sm opacity-60">
-              Payment details haven&rsquo;t been set up yet — please contact us directly to
-              complete payment for this order.
+          <PaymentInstructions method={order.paymentMethod} settings={settings || {}} />
+
+          {settings?.instructions && (
+            <p className="text-sm opacity-75 pt-3 mt-3 border-t border-black/10 whitespace-pre-line">
+              {settings.instructions}
             </p>
-          ) : (
-            <div className="text-sm space-y-3">
-              {settings?.bankName && (
-                <div>
-                  <p className="font-medium mb-1">Bank Transfer</p>
-                  <p className="opacity-75">{settings.bankName}</p>
-                  {settings.accountTitle && <p className="opacity-75">Account Title: {settings.accountTitle}</p>}
-                  {settings.accountNumber && <p className="opacity-75">Account #: {settings.accountNumber}</p>}
-                  {settings.iban && <p className="opacity-75">IBAN: {settings.iban}</p>}
-                </div>
-              )}
-              {settings?.easypaisaNumber && (
-                <div>
-                  <p className="font-medium mb-1">EasyPaisa</p>
-                  <p className="opacity-75">{settings.easypaisaNumber}</p>
-                  {settings.easypaisaName && <p className="opacity-75">Account Name: {settings.easypaisaName}</p>}
-                </div>
-              )}
-              {settings?.instructions && (
-                <p className="opacity-75 pt-2 border-t border-black/10 whitespace-pre-line">
-                  {settings.instructions}
-                </p>
-              )}
-            </div>
           )}
 
           <p className="text-sm font-medium mt-4 pt-4 border-t border-black/10">
-            Amount to pay: {formatPrice(order.total)}
+            {isCod ? "Amount due on delivery" : "Amount to pay"}: {formatPrice(order.total)}
           </p>
         </div>
 
-        {whatsappLink && (
+        {whatsappLink && !isCod && (
           <a
             href={whatsappLink}
             target="_blank"
@@ -118,7 +150,11 @@ export default async function OrderConfirmationPage({ params }) {
           </div>
         </div>
       </div>
-      <Footer variant="shell" whatsappNumber={settings?.whatsappNumber} />
+      <Footer
+        variant="shell"
+        whatsappNumber={settings?.whatsappNumber}
+        contactPhone={settings?.contactPhone}
+      />
     </main>
   );
 }

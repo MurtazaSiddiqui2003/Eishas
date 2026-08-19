@@ -4,7 +4,6 @@ import Settings from "@/models/Settings";
 import PaymentSettings from "@/models/PaymentSettings";
 import StoreNav from "@/components/StoreNav";
 import FeaturedProducts from "@/components/FeaturedProducts";
-import StoreCatalog from "@/components/StoreCatalog";
 import HeroBanner from "@/components/HeroBanner";
 import Footer from "@/components/Footer";
 
@@ -24,6 +23,7 @@ async function getData() {
     products: JSON.parse(JSON.stringify(products)),
     settings: settings ? JSON.parse(JSON.stringify(settings)) : null,
     whatsappNumber: paymentSettings?.whatsappNumber,
+    contactPhone: paymentSettings?.contactPhone,
   };
 }
 
@@ -39,7 +39,7 @@ const border = (
 );
 
 export default async function ApparelPage() {
-  const { products, settings, whatsappNumber } = await getData();
+  const { products, settings, whatsappNumber, contactPhone } = await getData();
 
   return (
     <>
@@ -60,10 +60,18 @@ export default async function ApparelPage() {
       </HeroBanner>
 
       <FeaturedProducts products={products} storeHref="/apparel" />
-      <StoreCatalog products={products} storeHref="/apparel" />
+
+      <div className="text-center pb-14 pt-2">
+        <a
+          href="/apparel/collection"
+          className="inline-block px-8 py-3.5 border border-theme-accent text-theme-accent font-body text-sm uppercase tracking-wide hover:bg-theme-accent hover:text-theme-bg transition-colors"
+        >
+          Shop the full collection
+        </a>
+      </div>
 
       {border}
-      <Footer whatsappNumber={whatsappNumber} />
+      <Footer whatsappNumber={whatsappNumber} contactPhone={contactPhone} instagramUrl={settings?.instagramUrl} />
     </>
   );
 }

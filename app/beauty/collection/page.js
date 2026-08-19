@@ -3,8 +3,7 @@ import Product from "@/models/Product";
 import Settings from "@/models/Settings";
 import PaymentSettings from "@/models/PaymentSettings";
 import StoreNav from "@/components/StoreNav";
-import FeaturedProducts from "@/components/FeaturedProducts";
-import HeroBanner from "@/components/HeroBanner";
+import StoreCatalog from "@/components/StoreCatalog";
 import Footer from "@/components/Footer";
 
 export const dynamic = "force-dynamic";
@@ -24,36 +23,23 @@ async function getData() {
   };
 }
 
-export default async function BeautyPage() {
+export default async function BeautyCollectionPage() {
   const { products, settings, whatsappNumber, contactPhone } = await getData();
 
   return (
     <>
       <StoreNav storeName="Eisha's Beauty" homeHref="/beauty" logo={settings?.logo} />
 
-      <HeroBanner
-        desktop={settings?.heroImage}
-        mobile={settings?.heroImageMobile}
-        gradientClassName="bg-gradient-to-t from-black/40 to-transparent"
-      >
-        <p className="font-body text-xs tracking-[0.16em] uppercase text-white/85 mb-2">
-          Skincare &amp; Rituals
+      <div className="text-center pt-12 pb-2">
+        <p className="font-body text-xs tracking-[0.16em] uppercase text-theme-accent mb-2">
+          The Full Collection
         </p>
-        <h1 className="font-display font-[var(--heading-weight)] text-[clamp(1.6rem,4vw,2.3rem)] text-white leading-tight">
-          Slow down. Take care of your skin.
+        <h1 className="font-display font-[var(--heading-weight)] text-2xl text-theme-ink">
+          Skincare &amp; Rituals
         </h1>
-      </HeroBanner>
-
-      <FeaturedProducts products={products} storeHref="/beauty" />
-
-      <div className="text-center pb-14 pt-2">
-        <a
-          href="/beauty/collection"
-          className="inline-block px-8 py-3.5 border border-theme-accent text-theme-accent font-body text-sm uppercase tracking-wide hover:bg-theme-accent hover:text-theme-bg transition-colors"
-        >
-          Shop the full collection
-        </a>
       </div>
+
+      <StoreCatalog products={products} storeHref="/beauty" />
 
       <Footer whatsappNumber={whatsappNumber} contactPhone={contactPhone} instagramUrl={settings?.instagramUrl} />
     </>

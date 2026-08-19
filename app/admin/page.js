@@ -53,6 +53,7 @@ export default function AdminPage() {
     doorImageMobile: "",
     heroImage: "",
     heroImageMobile: "",
+    instagramUrl: "",
   });
   const [settingsStatus, setSettingsStatus] = useState(null);
   const [savingSettings, setSavingSettings] = useState(false);
@@ -84,6 +85,7 @@ export default function AdminPage() {
       doorImageMobile: s?.doorImageMobile || "",
       heroImage: s?.heroImage || "",
       heroImageMobile: s?.heroImageMobile || "",
+      instagramUrl: s?.instagramUrl || "",
     });
   }, [activeStore, settings]);
 
@@ -334,6 +336,18 @@ export default function AdminPage() {
               value={settingsForm.logo}
               onChange={(url) => setSettingsForm((f) => ({ ...f, logo: url }))}
             />
+
+            <div>
+              <label className="text-xs text-[#666] block mb-1.5">
+                Instagram URL (shown in this store&rsquo;s footer and the Contact page)
+              </label>
+              <input
+                className="w-full px-3 py-2.5 border border-[#d5d5d0] text-sm"
+                placeholder="https://instagram.com/yourhandle"
+                value={settingsForm.instagramUrl}
+                onChange={(e) => setSettingsForm((f) => ({ ...f, instagramUrl: e.target.value }))}
+              />
+            </div>
 
             <div className="flex flex-col gap-3 pb-5 border-b border-[#eee]">
               <ImageUploader
