@@ -6,7 +6,7 @@ import { useCart } from "@/context/CartContext";
 
 export default function StoreNav({ storeName, homeHref, logo }) {
   const { data: session } = useSession();
-  const { count } = useCart();
+  const { count, toggleCart } = useCart();
   const pathname = usePathname();
 
   return (
@@ -34,9 +34,12 @@ export default function StoreNav({ storeName, homeHref, logo }) {
         <a href={`${homeHref}/collection`} className="text-theme-ink opacity-75 hover:opacity-100 hover:text-theme-accent transition-all whitespace-nowrap">
           Shop
         </a>
-        <a href="/cart" className="text-theme-ink opacity-75 hover:opacity-100 hover:text-theme-accent transition-all whitespace-nowrap">
+        <button
+          onClick={toggleCart}
+          className="text-theme-ink opacity-75 hover:opacity-100 hover:text-theme-accent transition-all whitespace-nowrap"
+        >
           Cart{count > 0 ? ` (${count})` : ""}
-        </a>
+        </button>
         {session ? (
           <button
             onClick={() => signOut()}

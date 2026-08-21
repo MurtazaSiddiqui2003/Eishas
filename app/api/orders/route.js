@@ -5,6 +5,7 @@ import Order from "@/models/Order";
 import Product from "@/models/Product";
 import PaymentSettings from "@/models/PaymentSettings";
 import { getNextOrderNumber } from "@/lib/orderNumber";
+import { getDeliveryFee } from "@/lib/delivery";
 
 const VALID_METHODS = ["easypaisa", "jazzcash", "sadapay", "bank_transfer", "cod"];
 
@@ -72,7 +73,9 @@ export async function POST(req) {
     const session = await getServerSession(authOptions);
     const orderNumber = await getNextOrderNumber();
 
-    const total = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
+    const subtotal = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
+    const deliveryFee = getDeliveryFee(subtotal);
+    const total = subtotal + deliveryFee;
 
     const order = await Order.create({
       orderNumber,
@@ -87,9 +90,12 @@ export async function POST(req) {
         price: i.price,
         quantity: i.quantity,
         size: i.size || undefined,
+        color: i.color || undefined,
         image: i.image,
       })),
       shippingAddress,
+      subtotal,
+      deliveryFee,
       total,
     });
 

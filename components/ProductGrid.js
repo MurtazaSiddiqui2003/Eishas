@@ -79,7 +79,9 @@ export default function ProductGrid({ products, emptyMessage, storeHref }) {
             </div>
             <button
               className="mt-2 self-start px-4 py-2.5 border border-theme-accent text-theme-accent font-body text-xs tracking-wide uppercase transition-colors hover:bg-theme-accent hover:text-theme-bg disabled:opacity-40 disabled:cursor-not-allowed"
-              onClick={() => addItem(product)}
+              onClick={() =>
+                addItem(product, 1, { size: product.sizes?.[0] || null, color: product.colors?.[0] || null })
+              }
               disabled={product.stock <= 0}
             >
               {product.stock <= 0 ? "Out of stock" : "Add to bag"}

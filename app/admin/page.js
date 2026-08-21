@@ -26,7 +26,7 @@ const emptyForm = {
   images: [],
   categories: [],
   sizes: "",
-  color: "",
+  colors: "",
   fabric: "",
   skinType: "",
   volume: "",
@@ -150,7 +150,7 @@ export default function AdminPage() {
       images: p.images || [],
       categories: p.categories || [],
       sizes: (p.sizes || []).join(", "),
-      color: p.color || "",
+      colors: (p.colors || []).join(", "),
       fabric: p.fabric || "",
       skinType: p.skinType || "",
       volume: p.volume || "",
@@ -186,7 +186,7 @@ export default function AdminPage() {
         featured: form.featured,
         ...(form.store === "apparel" && {
           sizes: form.sizes.split(",").map((s) => s.trim()).filter(Boolean),
-          color: form.color,
+          colors: form.colors.split(",").map((c) => c.trim()).filter(Boolean),
           fabric: form.fabric,
         }),
         ...(form.store === "beauty" && {
@@ -195,7 +195,7 @@ export default function AdminPage() {
         }),
         ...(form.store === "jewelry" && {
           material: form.material,
-          color: form.color,
+          colors: form.colors.split(",").map((c) => c.trim()).filter(Boolean),
         }),
       };
 
@@ -489,7 +489,7 @@ export default function AdminPage() {
             {form.store === "apparel" && (
               <>
                 <input className={inputClass} placeholder="Sizes (S, M, L, XL)" value={form.sizes} onChange={update("sizes")} />
-                <input className={inputClass} placeholder="Color" value={form.color} onChange={update("color")} />
+                <input className={inputClass} placeholder="Colors (comma-separated, e.g. Maroon, Navy)" value={form.colors} onChange={update("colors")} />
                 <input className={inputClass} placeholder="Fabric (e.g. Chiffon, Silk, Cotton)" value={form.fabric} onChange={update("fabric")} />
               </>
             )}
@@ -504,7 +504,7 @@ export default function AdminPage() {
             {form.store === "jewelry" && (
               <>
                 <input className={inputClass} placeholder="Material (e.g. 22k Gold Plated)" value={form.material} onChange={update("material")} />
-                <input className={inputClass} placeholder="Color (e.g. Rose Gold, Antique Silver)" value={form.color} onChange={update("color")} />
+                <input className={inputClass} placeholder="Colors (comma-separated, e.g. Rose Gold, Antique Silver)" value={form.colors} onChange={update("colors")} />
               </>
             )}
 

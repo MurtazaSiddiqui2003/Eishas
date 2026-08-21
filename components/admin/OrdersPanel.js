@@ -103,7 +103,7 @@ export default function OrdersPanel() {
                         <div key={i} className="flex justify-between">
                           <span>
                             {item.name}
-                            {item.size ? ` (${item.size})` : ""} &times; {item.quantity}
+                            {[item.color, item.size].filter(Boolean).length > 0 ? ` (${[item.color, item.size].filter(Boolean).join(", ")})` : ""} &times; {item.quantity}
                           </span>
                           <span>{formatPrice(item.price * item.quantity)}</span>
                         </div>
@@ -196,7 +196,7 @@ function Invoice({ order }) {
             <tr key={i} className="border-b border-black/20">
               <td className="py-2">
                 {item.name}
-                {item.size ? ` (${item.size})` : ""}
+                {[item.color, item.size].filter(Boolean).length > 0 ? ` (${[item.color, item.size].filter(Boolean).join(", ")})` : ""}
               </td>
               <td className="text-right py-2">{item.quantity}</td>
               <td className="text-right py-2">{formatPrice(item.price * item.quantity)}</td>
@@ -205,7 +205,11 @@ function Invoice({ order }) {
         </tbody>
       </table>
 
-      <p className="text-right text-base font-medium">Total: {formatPrice(order.total)}</p>
+      <div className="text-right text-sm space-y-1">
+        <p className="opacity-70">Subtotal: {formatPrice(order.subtotal)}</p>
+        <p className="opacity-70">Delivery: {order.deliveryFee === 0 ? "Free" : formatPrice(order.deliveryFee)}</p>
+        <p className="text-base font-medium">Total: {formatPrice(order.total)}</p>
+      </div>
     </div>
   );
 }

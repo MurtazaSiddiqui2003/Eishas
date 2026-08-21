@@ -9,6 +9,7 @@ export default function ProductDetail({ product }) {
   const { addItem } = useCart();
   const [activeImage, setActiveImage] = useState(0);
   const [size, setSize] = useState(product.sizes?.[0] || null);
+  const [color, setColor] = useState(product.colors?.[0] || null);
   const [added, setAdded] = useState(false);
 
   const onSale = product.compareAtPrice > product.price;
@@ -17,7 +18,7 @@ export default function ProductDetail({ product }) {
     : 0;
 
   function handleAdd() {
-    addItem(product, 1, size);
+    addItem(product, 1, { size, color });
     setAdded(true);
     setTimeout(() => setAdded(false), 1500);
   }
@@ -83,6 +84,27 @@ export default function ProductDetail({ product }) {
           {product.description}
         </p>
 
+        {product.colors?.length > 0 && (
+          <div className="mb-6">
+            <p className="font-body text-xs uppercase tracking-wide mb-2 opacity-70">Color</p>
+            <div className="flex gap-2 flex-wrap">
+              {product.colors.map((c) => (
+                <button
+                  key={c}
+                  onClick={() => setColor(c)}
+                  className={`px-3.5 py-2 border font-body text-sm ${
+                    color === c
+                      ? "bg-theme-accent text-theme-bg border-theme-accent"
+                      : "border-[color-mix(in_srgb,var(--ink)_25%,transparent)] text-theme-ink"
+                  }`}
+                >
+                  {c}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         {product.sizes?.length > 0 && (
           <div className="mb-6">
             <p className="font-body text-xs uppercase tracking-wide mb-2 opacity-70">Size</p>
@@ -105,7 +127,6 @@ export default function ProductDetail({ product }) {
         )}
 
         <div className="font-body text-sm opacity-70 space-y-1 mb-6">
-          {product.color && <p>Color: {product.color}</p>}
           {product.fabric && <p>Fabric: {product.fabric}</p>}
           {product.material && <p>Material: {product.material}</p>}
           {product.skinType && <p>Skin type: {product.skinType}</p>}

@@ -31,7 +31,7 @@ const ProductSchema = new mongoose.Schema(
 
     // Apparel-specific (ignored by other stores)
     sizes: [{ type: String }], // e.g. ["S", "M", "L", "XL"]
-    color: { type: String }, // shared with jewelry below — same field, both stores use it
+    colors: [{ type: String }], // e.g. ["Maroon", "Navy"] — shared with jewelry below
     fabric: { type: String }, // e.g. "Chiffon", "Silk", "Cotton"
 
     // Beauty-specific
@@ -40,7 +40,7 @@ const ProductSchema = new mongoose.Schema(
 
     // Jewelry-specific
     material: { type: String }, // e.g. "22k Gold Plated"
-    // color (see above) is also used here — e.g. "Rose Gold", "Antique Silver"
+    // colors (see above) is also used here — e.g. ["Rose Gold", "Antique Silver"]
 
     stock: { type: Number, required: true, default: 0 },
     featured: { type: Boolean, default: false },

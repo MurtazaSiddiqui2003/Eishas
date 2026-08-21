@@ -19,6 +19,7 @@ const OrderSchema = new mongoose.Schema(
         price: { type: Number, required: true },
         quantity: { type: Number, required: true },
         size: { type: String },
+        color: { type: String },
         image: { type: String },
       },
     ],
@@ -32,7 +33,9 @@ const OrderSchema = new mongoose.Schema(
       phone: { type: String, required: true },
     },
 
-    total: { type: Number, required: true },
+    subtotal: { type: Number, required: true },
+    deliveryFee: { type: Number, required: true, default: 0 },
+    total: { type: Number, required: true }, // subtotal + deliveryFee
 
     // Kept separate from fulfillment status below — an order sits in
     // "pending_verification" until you confirm the money came in (for COD,

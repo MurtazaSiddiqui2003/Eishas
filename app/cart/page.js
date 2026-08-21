@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useCart } from "@/context/CartContext";
 import { formatPrice } from "@/lib/currency";
+import { getDeliveryFee } from "@/lib/delivery";
 import Footer from "@/components/Footer";
 
 const storeLabels = {
@@ -14,6 +15,7 @@ const storeLabels = {
 export default function CartPage() {
   const { items, removeItem, updateQuantity, total } = useCart();
   const [paymentSettings, setPaymentSettings] = useState(null);
+  const deliveryFee = getDeliveryFee(total);
 
   useEffect(() => {
     fetch("/api/payment-settings")
@@ -52,7 +54,7 @@ export default function CartPage() {
               </h2>
               {storeItems.map((item) => (
                 <div
-                  key={`${item.productId}-${item.size}`}
+                  key={`${item.productId}-${item.size}-${item.color}`}
                   className="flex gap-4 py-4 border-b border-black/[0.07]"
                 >
                   {item.image && (
@@ -60,12 +62,16 @@ export default function CartPage() {
                   )}
                   <div className="flex-1">
                     <p className="text-[0.95rem] mb-1">{item.name}</p>
-                    {item.size && <p className="text-xs opacity-60 mb-2">Size: {item.size}</p>}
+                    {(item.color || item.size) && (
+                      <p className="text-xs opacity-60 mb-2">
+                        {[item.color, item.size].filter(Boolean).join(" · ")}
+                      </p>
+                    )}
                     <div className="flex items-center gap-3 text-sm">
                       <button
                         className="w-[1.6rem] h-[1.6rem] border border-black/20"
                         onClick={() =>
-                          updateQuantity(item.productId, item.size, Math.max(1, item.quantity - 1))
+                          updateQuantity(item.productId, item.size, item.color, Math.max(1, item.quantity - 1))
                         }
                       >
                         −
@@ -74,7 +80,7 @@ export default function CartPage() {
                       <button
                         className="w-[1.6rem] h-[1.6rem] border border-black/20"
                         onClick={() =>
-                          updateQuantity(item.productId, item.size, item.quantity + 1)
+                          updateQuantity(item.productId, item.size, item.color, item.quantity + 1)
                         }
                       >
                         +
@@ -85,7 +91,7 @@ export default function CartPage() {
                     <p>{formatPrice(item.price * item.quantity)}</p>
                     <button
                       className="text-xs opacity-50 hover:opacity-100 hover:text-[#e08585] mt-2"
-                      onClick={() => removeItem(item.productId, item.size)}
+                      onClick={() => removeItem(item.productId, item.size, item.color)}
                     >
                       Remove
                     </button>
@@ -95,9 +101,19 @@ export default function CartPage() {
             </section>
           ))}
 
-          <div className="flex justify-between font-['Cormorant_Garamond'] text-xl py-6 border-t border-black/15">
-            <span>Total</span>
-            <span>{formatPrice(total)}</span>
+          <div className="pt-6 border-t border-black/15">
+            <div className="flex justify-between text-sm opacity-70 mb-1">
+              <span>Subtotal</span>
+              <span>{formatPrice(total)}</span>
+            </div>
+            <div className="flex justify-between text-sm opacity-70 mb-4">
+              <span>Delivery</span>
+              <span>{deliveryFee === 0 ? "Free" : formatPrice(deliveryFee)}</span>
+            </div>
+            <div className="flex justify-between font-['Cormorant_Garamond'] text-xl mb-6">
+              <span>Total</span>
+              <span>{formatPrice(total + deliveryFee)}</span>
+            </div>
           </div>
 
           <a

@@ -138,11 +138,22 @@ export default async function OrderConfirmationPage({ params }) {
               <div key={i} className="flex justify-between gap-3">
                 <span className="flex-1">
                   {item.name}
-                  {item.size ? ` (${item.size})` : ""} &times; {item.quantity}
+                  {[item.color, item.size].filter(Boolean).length > 0
+                    ? ` (${[item.color, item.size].filter(Boolean).join(", ")})`
+                    : ""}{" "}
+                  &times; {item.quantity}
                 </span>
                 <span>{formatPrice(item.price * item.quantity)}</span>
               </div>
             ))}
+          </div>
+          <div className="flex justify-between text-sm opacity-70 pt-3 mt-3 border-t border-black/10">
+            <span>Subtotal</span>
+            <span>{formatPrice(order.subtotal)}</span>
+          </div>
+          <div className="flex justify-between text-sm opacity-70">
+            <span>Delivery</span>
+            <span>{order.deliveryFee === 0 ? "Free" : formatPrice(order.deliveryFee)}</span>
           </div>
           <div className="flex justify-between font-medium text-base pt-3 mt-3 border-t border-black/10">
             <span>Total</span>

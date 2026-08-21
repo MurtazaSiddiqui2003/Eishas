@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useCart } from "@/context/CartContext";
 import { formatPrice } from "@/lib/currency";
+import { getDeliveryFee } from "@/lib/delivery";
 import Footer from "@/components/Footer";
 
 const METHOD_LABELS = {
@@ -15,6 +16,8 @@ const METHOD_LABELS = {
 
 export default function CheckoutPage() {
   const { items, total, clearCart } = useCart();
+  const deliveryFee = getDeliveryFee(total);
+  const orderTotal = total + deliveryFee;
   const [form, setForm] = useState({
     customerName: "",
     customerEmail: "",
@@ -201,18 +204,29 @@ export default function CheckoutPage() {
           <h2 className="font-['Cormorant_Garamond'] text-lg mb-4">Order summary</h2>
           <div className="flex flex-col gap-3 mb-4">
             {items.map((item) => (
-              <div key={`${item.productId}-${item.size}`} className="flex justify-between text-sm gap-3">
+              <div key={`${item.productId}-${item.size}-${item.color}`} className="flex justify-between text-sm gap-3">
                 <span className="flex-1">
                   {item.name}
-                  {item.size ? ` (${item.size})` : ""} &times; {item.quantity}
+                  {[item.color, item.size].filter(Boolean).length > 0
+                    ? ` (${[item.color, item.size].filter(Boolean).join(", ")})`
+                    : ""}{" "}
+                  &times; {item.quantity}
                 </span>
                 <span>{formatPrice(item.price * item.quantity)}</span>
               </div>
             ))}
           </div>
+          <div className="flex justify-between text-sm opacity-70 pt-3 border-t border-black/10">
+            <span>Subtotal</span>
+            <span>{formatPrice(total)}</span>
+          </div>
+          <div className="flex justify-between text-sm opacity-70 mb-3">
+            <span>Delivery</span>
+            <span>{deliveryFee === 0 ? "Free" : formatPrice(deliveryFee)}</span>
+          </div>
           <div className="flex justify-between font-medium text-base pt-3 border-t border-black/10">
             <span>Total</span>
-            <span>{formatPrice(total)}</span>
+            <span>{formatPrice(orderTotal)}</span>
           </div>
         </div>
       </div>
