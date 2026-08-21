@@ -18,7 +18,16 @@ const ProductSchema = new mongoose.Schema(
     price: { type: Number, required: true },
     compareAtPrice: { type: Number }, // for showing a strikethrough "was" price
     images: [{ type: String, required: true }], // Cloudinary URLs
-    category: { type: String, required: true }, // e.g. "Sarees", "Skincare", "Earrings"
+
+    // A product can carry several tags at once — e.g. an apparel piece
+    // might be both "Lehngas" and "Unstitched". Filtering/search on the
+    // storefront checks whether a product's categories includes the
+    // selected tag, so multi-tagged products show up under any of them.
+    categories: {
+      type: [String],
+      required: true,
+      validate: (arr) => Array.isArray(arr) && arr.length > 0,
+    },
 
     // Apparel-specific (ignored by other stores)
     sizes: [{ type: String }], // e.g. ["S", "M", "L", "XL"]

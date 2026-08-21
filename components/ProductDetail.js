@@ -11,6 +11,11 @@ export default function ProductDetail({ product }) {
   const [size, setSize] = useState(product.sizes?.[0] || null);
   const [added, setAdded] = useState(false);
 
+  const onSale = product.compareAtPrice > product.price;
+  const discountPercent = onSale
+    ? Math.round(((product.compareAtPrice - product.price) / product.compareAtPrice) * 100)
+    : 0;
+
   function handleAdd() {
     addItem(product, 1, size);
     setAdded(true);
@@ -22,15 +27,25 @@ export default function ProductDetail({ product }) {
       <div>
         <div className="relative w-full aspect-[3/4] mb-3 bg-[color-mix(in_srgb,var(--ink)_6%,transparent)] overflow-hidden">
           {product.images?.[activeImage] ? (
+            // key={activeImage} remounts the image on every thumbnail click,
+            // which replays the fadeIn animation — a smooth cross-fade
+            // instead of the picture just instantly swapping out.
             <Image
+              key={activeImage}
               src={product.images[activeImage]}
               alt={product.name}
               fill
               sizes="(max-width: 768px) 100vw, 50vw"
-              className="object-cover"
+              className="object-cover animate-fadeIn"
             />
           ) : (
             <div className="w-full h-full bg-placeholder-pattern" />
+          )}
+
+          {onSale && (
+            <span className="absolute top-4 left-4 w-14 h-14 rounded-full bg-theme-accent text-theme-bg flex items-center justify-center text-sm font-medium font-body shadow-sm">
+              -{discountPercent}%
+            </span>
           )}
         </div>
 
@@ -40,7 +55,7 @@ export default function ProductDetail({ product }) {
               <button
                 key={img}
                 onClick={() => setActiveImage(i)}
-                className={`relative w-16 h-20 shrink-0 border overflow-hidden ${
+                className={`relative w-16 h-20 shrink-0 border overflow-hidden transition-colors ${
                   i === activeImage ? "border-theme-accent" : "border-transparent"
                 }`}
               >
@@ -53,10 +68,17 @@ export default function ProductDetail({ product }) {
 
       <div>
         <p className="font-body text-xs uppercase tracking-wider opacity-55 mb-2">
-          {product.category}
+          {(product.categories || []).join(", ")}
         </p>
         <h1 className="font-display text-2xl mb-3 text-theme-ink">{product.name}</h1>
-        <p className="font-body text-lg text-theme-accent mb-5">{formatPrice(product.price)}</p>
+        <div className="flex items-baseline gap-3 mb-5">
+          <p className="font-body text-lg text-theme-accent">{formatPrice(product.price)}</p>
+          {onSale && (
+            <p className="font-body text-sm text-theme-ink opacity-40 line-through">
+              {formatPrice(product.compareAtPrice)}
+            </p>
+          )}
+        </div>
         <p className="font-body text-sm leading-relaxed opacity-80 mb-6 whitespace-pre-line">
           {product.description}
         </p>

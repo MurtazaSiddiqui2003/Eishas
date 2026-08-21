@@ -6,12 +6,12 @@ import OrdersPanel from "@/components/admin/OrdersPanel";
 import PaymentPanel from "@/components/admin/PaymentPanel";
 import { formatPrice } from "@/lib/currency";
 
-// Curated per-store categories, with a "custom" escape hatch. This is
-// what fixes the earlier bug where the category field was a free-text
-// box that invited typing a comma list (like the Sizes field nearby) —
-// now it's either one clean preset, or one clean custom value.
+// Curated per-store category tags — checkable, not exclusive, since a
+// product can be tagged with several (e.g. an apparel piece can be both
+// "Lehngas" and "Unstitched"). Plus a free-text box for anything not
+// on the list.
 const CATEGORY_PRESETS = {
-  apparel: ["Sarees", "Lehngas", "Suits", "Kurtis", "Sharara"],
+  apparel: ["Sarees", "Lehngas", "Suits", "Kurtis", "Sharara", "Unstitched", "Stitched", "Fabric"],
   beauty: ["Skincare", "Makeup", "Haircare", "Fragrance"],
   jewelry: ["Earrings", "Necklaces", "Bangles", "Rings", "Sets"],
 };
@@ -24,7 +24,7 @@ const emptyForm = {
   price: "",
   compareAtPrice: "",
   images: [],
-  category: "",
+  categories: [],
   sizes: "",
   color: "",
   fabric: "",
@@ -41,7 +41,7 @@ export default function AdminPage() {
 
   const [products, setProducts] = useState([]);
   const [form, setForm] = useState(emptyForm);
-  const [categoryMode, setCategoryMode] = useState("preset"); // "preset" | "custom"
+  const [customCategory, setCustomCategory] = useState("");
   const [editingId, setEditingId] = useState(null);
   const [status, setStatus] = useState(null);
   const [saving, setSaving] = useState(false);
@@ -114,26 +114,32 @@ export default function AdminPage() {
       .replace(/(^-|-$)/g, "");
   }
 
-  function handleCategorySelect(e) {
-    if (e.target.value === "__custom__") {
-      setCategoryMode("custom");
-      setForm((f) => ({ ...f, category: "" }));
-    } else {
-      setCategoryMode("preset");
-      setForm((f) => ({ ...f, category: e.target.value }));
+  function toggleCategory(cat) {
+    setForm((f) => ({
+      ...f,
+      categories: f.categories.includes(cat)
+        ? f.categories.filter((c) => c !== cat)
+        : [...f.categories, cat],
+    }));
+  }
+
+  function addCustomCategory() {
+    const trimmed = customCategory.trim();
+    if (trimmed && !form.categories.includes(trimmed)) {
+      setForm((f) => ({ ...f, categories: [...f.categories, trimmed] }));
     }
+    setCustomCategory("");
   }
 
   function resetForm(store) {
     setForm({ ...emptyForm, store });
-    setCategoryMode("preset");
+    setCustomCategory("");
     setEditingId(null);
   }
 
   function handleEdit(p) {
     setEditingId(p._id);
     setStatus(null);
-    setCategoryMode(CATEGORY_PRESETS[p.store]?.includes(p.category) ? "preset" : "custom");
     setForm({
       store: p.store,
       name: p.name,
@@ -142,7 +148,7 @@ export default function AdminPage() {
       price: String(p.price),
       compareAtPrice: p.compareAtPrice != null ? String(p.compareAtPrice) : "",
       images: p.images || [],
-      category: p.category,
+      categories: p.categories || [],
       sizes: (p.sizes || []).join(", "),
       color: p.color || "",
       fabric: p.fabric || "",
@@ -163,8 +169,8 @@ export default function AdminPage() {
       if (form.images.length === 0) {
         throw new Error("Add at least one product image");
       }
-      if (!form.category) {
-        throw new Error("Pick or type a category");
+      if (form.categories.length === 0) {
+        throw new Error("Pick at least one category");
       }
 
       const payload = {
@@ -175,7 +181,7 @@ export default function AdminPage() {
         price: parseFloat(form.price),
         compareAtPrice: form.compareAtPrice ? parseFloat(form.compareAtPrice) : undefined,
         images: form.images,
-        category: form.category,
+        categories: form.categories,
         stock: parseInt(form.stock, 10) || 0,
         featured: form.featured,
         ...(form.store === "apparel" && {
@@ -418,23 +424,53 @@ export default function AdminPage() {
               required
             />
 
-            <label className={labelClass}>Category</label>
-            <select className={inputClass} value={categoryMode === "custom" ? "__custom__" : form.category} onChange={handleCategorySelect}>
-              <option value="" disabled>Choose a category…</option>
-              {CATEGORY_PRESETS[form.store].map((c) => (
-                <option key={c} value={c}>{c}</option>
-              ))}
-              <option value="__custom__">Other (type your own)</option>
-            </select>
-            {categoryMode === "custom" && (
-              <input
-                className={inputClass}
-                placeholder="Type the category name"
-                value={form.category}
-                onChange={update("category")}
-                required
-              />
-            )}
+            <div>
+              <label className={labelClass}>Categories (pick as many as apply)</label>
+              <div className="flex flex-wrap gap-x-4 gap-y-1.5 mt-2 mb-2">
+                {CATEGORY_PRESETS[form.store].map((c) => (
+                  <label key={c} className="flex items-center gap-1.5 text-sm cursor-pointer">
+                    <input
+                      type="checkbox"
+                      className="w-auto"
+                      checked={form.categories.includes(c)}
+                      onChange={() => toggleCategory(c)}
+                    />
+                    {c}
+                  </label>
+                ))}
+              </div>
+
+              <div className="flex gap-2">
+                <input
+                  className={`${inputClass} flex-1`}
+                  placeholder="Add a custom category"
+                  value={customCategory}
+                  onChange={(e) => setCustomCategory(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      addCustomCategory();
+                    }
+                  }}
+                />
+                <button type="button" onClick={addCustomCategory} className="px-4 border border-[#d5d5d0] text-sm">
+                  Add
+                </button>
+              </div>
+
+              {form.categories.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 mt-2">
+                  {form.categories.map((c) => (
+                    <span key={c} className="flex items-center gap-1 px-2.5 py-1 bg-[#f0f0ee] text-xs">
+                      {c}
+                      <button type="button" onClick={() => toggleCategory(c)} className="opacity-60 hover:opacity-100">
+                        ×
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
 
             <ImageUploader
               label="Product images (first one is the main image)"
@@ -513,7 +549,7 @@ export default function AdminPage() {
                     <div className="flex-1">
                       {p.name}
                       <div className="text-xs uppercase tracking-wide text-[#888]">
-                        {p.category} · {formatPrice(p.price)} {p.images?.length > 1 ? `· ${p.images.length} images` : ""}
+                        {(p.categories || []).join(", ")} · {formatPrice(p.price)} {p.images?.length > 1 ? `· ${p.images.length} images` : ""}
                       </div>
                     </div>
                     <button onClick={() => handleEdit(p)} className="text-xs text-[#666] hover:text-[#1a1a1a]">

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { signIn } from "next-auth/react";
 
 export default function LoginPage() {
@@ -8,6 +8,17 @@ export default function LoginPage() {
   const [form, setForm] = useState({ name: "", email: "", password: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [callbackUrl, setCallbackUrl] = useState("/");
+
+  // Where to send someone after they sign in — whatever page they were on
+  // when they clicked "Sign in" (StoreNav appends this), so they land back
+  // somewhere that actually shows they're logged in. The bare landing page
+  // has no nav bar at all, so redirecting there made it look like sign-in
+  // silently failed even when it worked.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    setCallbackUrl(params.get("callbackUrl") || "/");
+  }, []);
 
   function update(field) {
     return (e) => setForm((f) => ({ ...f, [field]: e.target.value }));
@@ -37,7 +48,7 @@ export default function LoginPage() {
 
       if (result?.error) throw new Error(result.error);
 
-      window.location.href = "/";
+      window.location.href = callbackUrl;
     } catch (err) {
       setError(err.message);
     } finally {
@@ -93,7 +104,7 @@ export default function LoginPage() {
         </form>
 
         <button
-          onClick={() => signIn("google")}
+          onClick={() => signIn("google", { callbackUrl })}
           className="py-3 border border-black/20 text-[var(--ink)] font-['Inter'] text-sm"
           type="button"
         >

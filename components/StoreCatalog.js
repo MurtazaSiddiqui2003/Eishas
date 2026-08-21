@@ -9,7 +9,7 @@ export default function StoreCatalog({ products, storeHref }) {
   const [sort, setSort] = useState("newest");
 
   const categories = useMemo(() => {
-    const set = new Set(products.map((p) => p.category).filter(Boolean));
+    const set = new Set(products.flatMap((p) => p.categories || []).filter(Boolean));
     return ["all", ...Array.from(set)];
   }, [products]);
 
@@ -17,14 +17,15 @@ export default function StoreCatalog({ products, storeHref }) {
     let list = products;
 
     if (category !== "all") {
-      list = list.filter((p) => p.category === category);
+      list = list.filter((p) => (p.categories || []).includes(category));
     }
 
     if (query.trim()) {
       const q = query.trim().toLowerCase();
       list = list.filter(
         (p) =>
-          p.name.toLowerCase().includes(q) || p.category.toLowerCase().includes(q)
+          p.name.toLowerCase().includes(q) ||
+          (p.categories || []).some((c) => c.toLowerCase().includes(q))
       );
     }
 
