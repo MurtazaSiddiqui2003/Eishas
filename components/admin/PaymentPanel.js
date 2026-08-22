@@ -16,6 +16,7 @@ const emptyForm = {
   codEnabled: true,
   whatsappNumber: "",
   contactPhone: "",
+  notificationEmail: "",
   instructions: "",
 };
 
@@ -109,6 +110,16 @@ export default function PaymentPanel() {
           value={form.contactPhone}
           onChange={update("contactPhone")}
         />
+
+        <input
+          className={inputClass}
+          placeholder="Notification email (you get emailed here when a new order comes in)"
+          value={form.notificationEmail}
+          onChange={update("notificationEmail")}
+        />
+        <p className="text-xs text-[#888] -mt-1">
+          Requires EMAIL_USER/EMAIL_PASS to be set in your environment variables — see README.
+        </p>
 
         <textarea
           className={`${inputClass} min-h-[70px] resize-y mt-2`}

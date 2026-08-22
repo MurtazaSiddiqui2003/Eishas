@@ -8,8 +8,9 @@ const manrope = Manrope({
 });
 
 export const metadata = {
-  title: "Eisha's Beauty",
-  description: "Skincare and beauty rituals from Eisha's Beauty.",
+  title: "Eisha's Beauty — Skincare & Beauty Products in Pakistan",
+  description:
+    "Shop skincare, makeup, and beauty rituals from Eisha's Beauty — quality beauty products online in Pakistan, delivered nationwide.",
 };
 
 export default function BeautyLayout({ children }) {

@@ -1,4 +1,5 @@
 import { getServerSession } from "next-auth";
+import { cookies } from "next/headers";
 import { authOptions } from "@/lib/auth";
 import { connectDB } from "@/lib/mongodb";
 import Order from "@/models/Order";
@@ -6,12 +7,22 @@ import Product from "@/models/Product";
 import PaymentSettings from "@/models/PaymentSettings";
 import { getNextOrderNumber } from "@/lib/orderNumber";
 import { getDeliveryFee } from "@/lib/delivery";
+import { sendOrderConfirmationEmail, sendAdminNotificationEmail } from "@/lib/email";
 
 const VALID_METHODS = ["easypaisa", "jazzcash", "sadapay", "bank_transfer", "cod"];
 
-// GET -> list orders, newest first (used by the admin Orders tab)
+function isAdmin() {
+  return cookies().get("eishas_admin")?.value === process.env.ADMIN_PASSWORD;
+}
+
+// GET -> list every order (used by the admin Orders tab). Admin-only —
+// this previously had no protection at all, meaning anyone who found
+// this URL could see every customer's name, address, and phone number.
 export async function GET() {
   try {
+    if (!isAdmin()) {
+      return Response.json({ error: "Not authorized" }, { status: 401 });
+    }
     await connectDB();
     const orders = await Order.find({}).sort({ createdAt: -1 });
     return Response.json(orders);
@@ -103,6 +114,10 @@ export async function POST(req) {
     for (const item of items) {
       await Product.findByIdAndUpdate(item.productId, { $inc: { stock: -item.quantity } });
     }
+
+    // Fire-and-forget — email failures should never fail the order itself.
+    sendOrderConfirmationEmail(order);
+    sendAdminNotificationEmail(order, settings?.notificationEmail);
 
     return Response.json(order, { status: 201 });
   } catch (err) {

@@ -15,6 +15,8 @@ One landing page, three stores: **Eisha's Collection** (apparel), **Eisha's Beau
 ```
 app/
   page.js                 → landing page, full-height 3-way image split
+  icon.png                 → favicon (generated monogram — swap for a real logo anytime)
+  sitemap.js, robots.js      → auto-generated for search engines
   apparel/                 → Eisha's Collection home (maroon/gold, Fraunces)
     collection/                → full catalog: search, filter, sort
     [slug]/                    → product detail page
@@ -28,6 +30,8 @@ app/
   checkout/                       → shipping form, payment method → creates an order
   order-confirmation/[orderNumber] → payment instructions for the chosen method
   contact/                          → WhatsApp/phone/Instagram links, accepted payment methods
+  shipping-returns/                  → delivery + exchange/return policy (draft — read & edit the wording)
+  account/                              → order history for signed-in customers
   login/                          → shared sign in / sign up
   admin/                           → password-gated: Products, Store design, Orders, Payment tabs
   api/
@@ -35,7 +39,7 @@ app/
     signup                         → customer account creation
     products, products/[id]         → list/create/delete/update products
     settings                          → per-store logo/hero/door image/Instagram settings
-    orders, orders/[id]                → create/list orders, update payment/fulfillment status
+    orders, orders/[id]                → create/list orders, update payment/fulfillment status (admin-only)
     payment-settings                     → bank/EasyPaisa/JazzCash/SadaPay/contact details
     admin/login                        → admin password check
 lib/
@@ -44,19 +48,23 @@ lib/
   auth.js        → NextAuth options (Google provider auto-disables without real credentials)
   currency.js    → PKR price formatting used everywhere
   orderNumber.js → generates sequential ES-0001 style order numbers
+  delivery.js    → free delivery threshold + fee, shared by cart/checkout/orders
+  email.js       → order confirmation + new-order notification emails (Nodemailer)
+  seo.js         → product page metadata + JSON-LD structured data
 models/
   Product.js        → shared schema, has a `store` field (apparel/beauty/jewelry)
   Settings.js        → one doc per store: logo, doorImage, heroImage (+ mobile variants), instagramUrl
-  PaymentSettings.js  → single doc: all payment methods + WhatsApp/phone/instructions
+  PaymentSettings.js  → single doc: all payment methods + WhatsApp/phone/notification email
   Counter.js           → backs the sequential order number generator
   User.js
   Order.js
 context/
-  CartContext.js → shared cart, persisted to localStorage
+  CartContext.js → shared cart + drawer open/close state, persisted to localStorage
 components/
   ImageUploader.js → drag-and-drop upload straight to Cloudinary
   HeroBanner.js → hero banner with optional separate mobile image (art-directed crop, not just resized)
   Footer.js → adapts to store theme or the neutral shell; Instagram/WhatsApp/phone links
+  CartDrawer.js → sliding cart with free-delivery progress bar and suggested products
   StoreNav.js, ProductGrid.js, FeaturedProducts.js, StoreCatalog.js, ProductDetail.js
   AdminLogin.js
   admin/OrdersPanel.js, admin/PaymentPanel.js
@@ -166,21 +174,83 @@ and phone links, each store's Instagram (set per-store in the admin Design
 tab), and a summary of which payment methods you currently accept. The
 footer links to it from everywhere.
 
+## Cart drawer & free delivery
+
+Adding anything to the cart slides a drawer in from the right (`CartDrawer.js`)
+instead of navigating away. It shows a progress bar toward the free-delivery
+threshold, the cart contents, and 4 suggested products from whichever store
+you most recently added from. Delivery pricing (`Rs 300`, free over `Rs 5,000`)
+lives in one place — `lib/delivery.js` — and is used consistently by the
+drawer, `/cart`, `/checkout`, and the actual order total, so the progress bar
+is never just decorative.
+
+## SEO
+
+- **Metadata & social previews** — every product page generates its own
+  title, description, and Open Graph/Twitter image from the actual product
+  data, so sharing a product link on Instagram/WhatsApp shows the real
+  photo and name instead of a blank card. Store home pages and the
+  homepage do the same with hero/door images.
+- **Structured data (JSON-LD)** — Product schema (price, currency,
+  stock) on every product page, Organization schema on the homepage.
+  This is what can make Google show price/availability directly in
+  search results instead of just a plain link.
+- **Sitemap & robots.txt** — auto-generated at `/sitemap.xml` and
+  `/robots.txt`, regenerated on every request so new products show up
+  without a redeploy. Admin, cart, and checkout are excluded from indexing.
+- **Keyword-targeted copy** — titles and descriptions for the homepage
+  and each store were written around phrases like "clothing brand in
+  Pakistan" and "eastern wear Pakistan," but worded naturally — don't
+  add more keywords than read naturally in a sentence, since Google
+  penalizes obvious stuffing.
+
+**Honest expectation-setting**: none of this can guarantee ranking on
+page 1 for anything. Search ranking depends on a lot that's outside the
+code — how long Google's had to crawl and trust the domain, how many
+other sites link to yours, and how competitive the search term is. What
+this setup does is make sure nothing *technical* is holding the site
+back — the rest (backlinks, consistent content, reviews, time) happens
+after launch. Once deployed, submit the sitemap URL in
+[Google Search Console](https://search.google.com/search-console) to
+speed up indexing — that step doesn't happen automatically.
+
+Also set `NEXT_PUBLIC_SITE_URL` to your real domain once deployed — a
+lot of the above (social preview images, the sitemap, structured data)
+builds absolute URLs from this value.
+
+## Order confirmation emails
+
+Uses Nodemailer with a Gmail App Password — the same pattern as CRC
+Core's contact form. Two emails send automatically when an order is
+placed (both optional — orders work fine without either configured):
+
+- **Customer confirmation** — sent if they entered an email at checkout
+- **New-order alert to you** — sent to whatever email you set as
+  "Notification email" in the admin Payment tab
+
+To set up: enable 2-Step Verification on the Gmail account you want to
+send from, then Google Account → Security → App Passwords → generate one
+for "Mail" → put that (not your regular Gmail password) in `EMAIL_PASS`.
+
 ## What's not built yet (on purpose — this is a solid base to build on)
 
 - **A real payment gateway** — currently manual transfer/COD with
   admin-side verification (see above). Fine to start with, worth upgrading
   once you're getting consistent volume.
-- **Order history** on the customer account page (the `Order` model tracks
-  `user` when someone's signed in, but there's no page listing a customer's
-  past orders yet).
 - **Deleting a product's Cloudinary images when the product is deleted** —
   currently just removes the database record.
-- **Shipping cost** — checkout currently has no delivery fee logic, `total`
-  is just the cart subtotal.
+- **Editing an order's shipping address** after it's placed, from the
+  admin panel — currently you'd need to do this directly in the database.
+- **The Shipping & Returns page content is a draft** — the delivery fee
+  numbers are pulled from real code so they'll never drift out of sync,
+  but the actual policy wording (return window, conditions) is generic
+  placeholder text. Read it and adjust it to match what you actually want
+  to offer before relying on it.
 
 ## Deploying
 
 Push to GitHub, import into Vercel, add the environment variables in the
 Vercel dashboard, connect your domain the same way you did for CRC Core.
+Set `NEXT_PUBLIC_SITE_URL` to your real production domain — several SEO
+features build URLs from it.
 

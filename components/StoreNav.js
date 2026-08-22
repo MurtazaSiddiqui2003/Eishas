@@ -41,12 +41,20 @@ export default function StoreNav({ storeName, homeHref, logo }) {
           Cart{count > 0 ? ` (${count})` : ""}
         </button>
         {session ? (
-          <button
-            onClick={() => signOut()}
-            className="text-theme-ink opacity-75 hover:opacity-100 hover:text-theme-accent transition-all whitespace-nowrap"
-          >
-            Sign out
-          </button>
+          <>
+            <a
+              href="/account"
+              className="text-theme-ink opacity-75 hover:opacity-100 hover:text-theme-accent transition-all whitespace-nowrap"
+            >
+              Orders
+            </a>
+            <button
+              onClick={() => signOut()}
+              className="text-theme-ink opacity-75 hover:opacity-100 hover:text-theme-accent transition-all whitespace-nowrap"
+            >
+              Sign out
+            </button>
+          </>
         ) : (
           <a
             href={`/login?callbackUrl=${encodeURIComponent(pathname)}`}

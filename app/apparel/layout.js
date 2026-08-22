@@ -14,8 +14,9 @@ const body = Work_Sans({
 });
 
 export const metadata = {
-  title: "Eisha's Collection — Apparel",
-  description: "Suits, sarees, and lehngas from Eisha's Collection.",
+  title: "Eisha's Collection — Eastern Wear & Clothing Brand in Pakistan",
+  description:
+    "Shop suits, sarees, and lehngas from Eisha's Collection — a Pakistani eastern wear clothing brand for unstitched and stitched apparel, delivered across Pakistan.",
 };
 
 export default function ApparelLayout({ children }) {

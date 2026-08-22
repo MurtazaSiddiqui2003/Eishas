@@ -62,6 +62,7 @@ export default function Footer({ variant = "store", whatsappNumber, contactPhone
             </a>
           )}
           <a href="/contact" className={linkClass}>Contact page</a>
+          <a href="/shipping-returns" className={linkClass}>Shipping &amp; Returns</a>
         </div>
       </div>
 

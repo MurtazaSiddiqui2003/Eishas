@@ -72,7 +72,7 @@ export default function ProductDetail({ product }) {
           {(product.categories || []).join(", ")}
         </p>
         <h1 className="font-display text-2xl mb-3 text-theme-ink">{product.name}</h1>
-        <div className="flex items-baseline gap-3 mb-5">
+        <div className="flex items-baseline gap-3 mb-2">
           <p className="font-body text-lg text-theme-accent">{formatPrice(product.price)}</p>
           {onSale && (
             <p className="font-body text-sm text-theme-ink opacity-40 line-through">
@@ -80,6 +80,9 @@ export default function ProductDetail({ product }) {
             </p>
           )}
         </div>
+        {product.stock > 0 && product.stock <= 5 && (
+          <p className="text-sm text-[#b3261e] font-body mb-4">Only {product.stock} left in stock</p>
+        )}
         <p className="font-body text-sm leading-relaxed opacity-80 mb-6 whitespace-pre-line">
           {product.description}
         </p>

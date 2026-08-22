@@ -9,6 +9,19 @@ const doors = [
   { href: "/jewelry", key: "jewelry", label: "Eisha's Jewelry" },
 ];
 
+export async function generateMetadata() {
+  await connectDB();
+  const apparelSettings = await Settings.findOne({ store: "apparel" }).lean();
+  const ogImage = apparelSettings?.doorImage;
+
+  return {
+    title: "Eisha's — Eastern Wear, Beauty & Jewelry in Pakistan",
+    description:
+      "Shop eastern wear, beauty, and jewelry from Eisha's — a Pakistani clothing brand with sarees, lehngas, suits, skincare, and fine jewelry, delivered across Pakistan.",
+    openGraph: ogImage ? { images: [{ url: ogImage, width: 1200, height: 630 }] } : undefined,
+  };
+}
+
 async function getDoorImages() {
   await connectDB();
   const all = await Settings.find({}).lean();
@@ -22,8 +35,25 @@ async function getDoorImages() {
 export default async function HomePage() {
   const doorImages = await getDoorImages();
 
+  const orgJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: "Eisha's",
+    url: process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
+    description:
+      "Eisha's is a Pakistani clothing brand offering eastern wear, beauty products, and jewelry.",
+    address: {
+      "@type": "PostalAddress",
+      addressCountry: "PK",
+    },
+  };
+
   return (
     <main className="h-screen flex flex-col md:flex-row bg-[var(--ivory)]">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }}
+      />
       {doors.map((door, i) => {
         const images = doorImages[door.key] || {};
 

@@ -12,6 +12,16 @@ import Footer from "@/components/Footer";
 // the next deploy, and a build would fail if the DB were briefly unreachable.
 export const dynamic = "force-dynamic";
 
+export async function generateMetadata() {
+  await connectDB();
+  const settings = await Settings.findOne({ store: "apparel" }).lean();
+  const ogImage = settings?.heroImage;
+
+  return {
+    openGraph: ogImage ? { images: [{ url: ogImage, width: 1200, height: 630 }] } : undefined,
+  };
+}
+
 async function getData() {
   await connectDB();
   const [products, settings, paymentSettings] = await Promise.all([

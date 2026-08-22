@@ -77,6 +77,9 @@ export default function ProductGrid({ products, emptyMessage, storeHref }) {
                 </span>
               ) : null}
             </div>
+            {product.stock > 0 && product.stock <= 5 && (
+              <p className="text-xs text-[#b3261e] font-body -mt-1">Only {product.stock} left</p>
+            )}
             <button
               className="mt-2 self-start px-4 py-2.5 border border-theme-accent text-theme-accent font-body text-xs tracking-wide uppercase transition-colors hover:bg-theme-accent hover:text-theme-bg disabled:opacity-40 disabled:cursor-not-allowed"
               onClick={() =>

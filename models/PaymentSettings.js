@@ -34,6 +34,7 @@ const PaymentSettingsSchema = new mongoose.Schema(
 
     whatsappNumber: { type: String }, // payment proof + general contact
     contactPhone: { type: String }, // shown as a plain phone/call link
+    notificationEmail: { type: String }, // where you get emailed when a new order comes in
     instructions: { type: String }, // free-text note shown at checkout
   },
   { timestamps: true }

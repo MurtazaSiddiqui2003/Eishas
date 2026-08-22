@@ -6,8 +6,16 @@ import PaymentSettings from "@/models/PaymentSettings";
 import StoreNav from "@/components/StoreNav";
 import ProductDetail from "@/components/ProductDetail";
 import Footer from "@/components/Footer";
+import { getProductMetadata, getProductJsonLd } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
+
+export async function generateMetadata({ params }) {
+  await connectDB();
+  const product = await Product.findOne({ store: "beauty", slug: params.slug }).lean();
+  if (!product) return {};
+  return getProductMetadata(product, "/beauty");
+}
 
 export default async function BeautyProductPage({ params }) {
   await connectDB();
@@ -20,10 +28,16 @@ export default async function BeautyProductPage({ params }) {
 
   if (!product) notFound();
 
+  const plainProduct = JSON.parse(JSON.stringify(product));
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(getProductJsonLd(plainProduct, "/beauty")) }}
+      />
       <StoreNav storeName="Eisha's Beauty" homeHref="/beauty" logo={settings?.logo} />
-      <ProductDetail product={JSON.parse(JSON.stringify(product))} />
+      <ProductDetail product={plainProduct} />
       <Footer
         whatsappNumber={paymentSettings?.whatsappNumber}
         contactPhone={paymentSettings?.contactPhone}

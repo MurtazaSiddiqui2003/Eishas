@@ -1,9 +1,17 @@
+import { cookies } from "next/headers";
 import { connectDB } from "@/lib/mongodb";
 import Order from "@/models/Order";
 
-// PATCH -> update payment/fulfillment status (used by the admin Orders tab)
+function isAdmin() {
+  return cookies().get("eishas_admin")?.value === process.env.ADMIN_PASSWORD;
+}
+
+// PATCH -> update payment/fulfillment status. Admin-only.
 export async function PATCH(req, { params }) {
   try {
+    if (!isAdmin()) {
+      return Response.json({ error: "Not authorized" }, { status: 401 });
+    }
     await connectDB();
     const body = await req.json();
     const order = await Order.findByIdAndUpdate(params.id, body, { new: true });

@@ -14,8 +14,9 @@ const body = Jost({
 });
 
 export const metadata = {
-  title: "Eisha's Jewelry",
-  description: "Earrings, sets, and bangles from Eisha's Jewelry.",
+  title: "Eisha's Jewelry — Fine Jewelry Online in Pakistan",
+  description:
+    "Shop earrings, necklaces, bangles, and jewelry sets from Eisha's Jewelry — fine jewelry online in Pakistan, delivered nationwide.",
 };
 
 export default function JewelryLayout({ children }) {
