@@ -1,30 +1,42 @@
 "use client";
 
-// One cart for the whole site. Each item remembers which store it came
-// from (item.store) so the cart page can group things and checkout can
-// show "Eisha's Collection", "Eisha's Beauty" etc. as sub-sections.
-// Items are keyed by product + size + color together, since the same
-// product in two different colors is a different line item.
-
 import { createContext, useContext, useEffect, useState } from "react";
 
 const CartContext = createContext(null);
+
+function isValidCartItem(item) {
+  return (
+    item &&
+    typeof item.productId === "string" &&
+    typeof item.name === "string" &&
+    typeof item.price === "number" &&
+    Number.isFinite(item.price) &&
+    typeof item.quantity === "number" &&
+    Number.isInteger(item.quantity) &&
+    item.quantity > 0
+  );
+}
 
 export function CartProvider({ children }) {
   const [items, setItems] = useState([]);
   const [loaded, setLoaded] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
 
-  // Load saved cart on first render
   useEffect(() => {
-    const saved = localStorage.getItem("eishas_cart");
-    if (saved) {
-      setItems(JSON.parse(saved));
+    try {
+      const saved = localStorage.getItem("eishas_cart");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        setItems(Array.isArray(parsed) ? parsed.filter(isValidCartItem) : []);
+      }
+    } catch {
+      localStorage.removeItem("eishas_cart");
+      setItems([]);
+    } finally {
+      setLoaded(true);
     }
-    setLoaded(true);
   }, []);
 
-  // Save cart whenever it changes (after initial load)
   useEffect(() => {
     if (loaded) {
       localStorage.setItem("eishas_cart", JSON.stringify(items));
@@ -33,6 +45,7 @@ export function CartProvider({ children }) {
 
   function addItem(product, quantity = 1, options = {}) {
     const { size = null, color = null } = options;
+    const safeQuantity = Number.isInteger(quantity) && quantity > 0 ? quantity : 1;
 
     setItems((prev) => {
       const existing = prev.find(
@@ -41,7 +54,7 @@ export function CartProvider({ children }) {
       if (existing) {
         return prev.map((i) =>
           i.productId === product._id && i.size === size && i.color === color
-            ? { ...i, quantity: i.quantity + quantity }
+            ? { ...i, quantity: i.quantity + safeQuantity }
             : i
         );
       }
@@ -55,12 +68,11 @@ export function CartProvider({ children }) {
           image: product.images?.[0],
           size,
           color,
-          quantity,
+          quantity: safeQuantity,
         },
       ];
     });
 
-    // Sliding cart drawer opens automatically whenever something's added.
     setIsOpen(true);
   }
 
@@ -71,10 +83,16 @@ export function CartProvider({ children }) {
   }
 
   function updateQuantity(productId, size, color, quantity) {
+    const safeQuantity = Number.isInteger(quantity) ? quantity : 1;
+    if (safeQuantity <= 0) {
+      removeItem(productId, size, color);
+      return;
+    }
+
     setItems((prev) =>
       prev.map((i) =>
         i.productId === productId && i.size === size && i.color === color
-          ? { ...i, quantity }
+          ? { ...i, quantity: safeQuantity }
           : i
       )
     );
