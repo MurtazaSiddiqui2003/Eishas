@@ -8,6 +8,26 @@ import Footer from "@/components/Footer";
 
 export const dynamic = "force-dynamic";
 
+export async function generateMetadata() {
+  await connectDB();
+  const settings = await Settings.findOne({ store: "beauty" }).lean();
+  const ogImage = settings?.heroImage;
+
+  return {
+    title: "Eisha's Beauty — Full Collection",
+    description:
+      "Shop the full Eisha's Beauty collection of skincare, beauty essentials, and everyday rituals.",
+    openGraph: ogImage
+      ? {
+          title: "Eisha's Beauty — Full Collection",
+          description:
+            "Shop the full Eisha's Beauty collection of skincare, beauty essentials, and everyday rituals.",
+          images: [{ url: ogImage, width: 1200, height: 630 }],
+        }
+      : undefined,
+  };
+}
+
 async function getData() {
   await connectDB();
   const [products, settings, paymentSettings] = await Promise.all([
