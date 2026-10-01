@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { connectDB } from "@/lib/mongodb";
 import Product from "@/models/Product";
 import Settings from "@/models/Settings";
@@ -15,7 +16,17 @@ export async function generateMetadata() {
   const ogImage = settings?.heroImage;
 
   return {
-    openGraph: ogImage ? { images: [{ url: ogImage, width: 1200, height: 630 }] } : undefined,
+    title: "Eisha's Jewelry — Earrings, Sets & Bangles in Pakistan",
+    description:
+      "Explore Eisha's Jewelry for earrings, jewelry sets, bangles, and timeless pieces, delivered across Pakistan.",
+    openGraph: ogImage
+      ? {
+          title: "Eisha's Jewelry — Earrings, Sets & Bangles in Pakistan",
+          description:
+            "Explore Eisha's Jewelry for earrings, jewelry sets, bangles, and timeless pieces, delivered across Pakistan.",
+          images: [{ url: ogImage, width: 1200, height: 630 }],
+        }
+      : undefined,
   };
 }
 
@@ -66,12 +77,12 @@ export default async function JewelryPage() {
       <FeaturedProducts products={products} storeHref="/jewelry" />
 
       <div className="text-center pb-14 pt-2">
-        <a
+        <Link
           href="/jewelry/collection"
           className="inline-block px-8 py-3.5 border border-theme-accent text-theme-accent font-body text-sm uppercase tracking-wide hover:bg-theme-accent hover:text-theme-bg transition-colors"
         >
           Shop the full collection
-        </a>
+        </Link>
       </div>
 
       <Footer whatsappNumber={whatsappNumber} contactPhone={contactPhone} instagramUrl={settings?.instagramUrl} />
