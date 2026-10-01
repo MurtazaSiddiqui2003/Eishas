@@ -133,6 +133,7 @@ export async function POST(req) {
     }
 
     const reservedItems = [];
+    let createdOrder = null;
 
     try {
       for (const item of serverItems) {
@@ -159,7 +160,7 @@ export async function POST(req) {
       const deliveryFee = getDeliveryFee(subtotal);
       const total = subtotal + deliveryFee;
 
-      const order = await Order.create({
+      createdOrder = await Order.create({
         orderNumber,
         confirmationToken,
         user: session?.user?.id || undefined,
@@ -182,7 +183,7 @@ export async function POST(req) {
 
       if (paymentMethod !== "cod") {
         await PaymentTransaction.create({
-          order: order._id,
+          order: createdOrder._id,
           provider: paymentMethod,
           merchantReference: orderNumber,
           amount: total,
@@ -192,17 +193,17 @@ export async function POST(req) {
         });
       }
 
-      sendOrderConfirmationEmail(order).catch((err) =>
+      sendOrderConfirmationEmail(createdOrder).catch((err) =>
         console.error("Order confirmation email failed:", err)
       );
-      sendAdminNotificationEmail(order, settings?.notificationEmail).catch((err) =>
+      sendAdminNotificationEmail(createdOrder, settings?.notificationEmail).catch((err) =>
         console.error("Admin notification email failed:", err)
       );
 
-      return Response.json({ orderNumber: order.orderNumber, confirmationToken }, { status: 201 });
+      return Response.json({ orderNumber: createdOrder.orderNumber, confirmationToken }, { status: 201 });
     } catch (err) {
-      if (typeof order !== "undefined" && order?._id) {
-        await Order.findByIdAndDelete(order._id);
+      if (createdOrder?._id) {
+        await Order.findByIdAndDelete(createdOrder._id);
       }
 
       for (const item of reservedItems) {
