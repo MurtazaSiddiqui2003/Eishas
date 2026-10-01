@@ -1,7 +1,9 @@
+import { requireAdmin } from "@/lib/requireAdmin";
 import { connectDB } from "@/lib/mongodb";
 import Product from "@/models/Product";
 
 export async function DELETE(req, { params }) {
+  if (!requireAdmin()) return Response.json({ error: "Not authorized" }, { status: 401 });
   try {
     await connectDB();
     await Product.findByIdAndDelete(params.id);
@@ -13,6 +15,7 @@ export async function DELETE(req, { params }) {
 }
 
 export async function PATCH(req, { params }) {
+  if (!requireAdmin()) return Response.json({ error: "Not authorized" }, { status: 401 });
   try {
     await connectDB();
     const body = await req.json();
