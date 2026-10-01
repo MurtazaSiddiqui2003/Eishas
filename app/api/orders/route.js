@@ -7,6 +7,7 @@ import { connectDB } from "@/lib/mongodb";
 import Order from "@/models/Order";
 import Product from "@/models/Product";
 import PaymentSettings from "@/models/PaymentSettings";
+import PaymentTransaction from "@/models/PaymentTransaction";
 import { getNextOrderNumber } from "@/lib/orderNumber";
 import { getDeliveryFee } from "@/lib/delivery";
 import { sendOrderConfirmationEmail, sendAdminNotificationEmail } from "@/lib/email";
@@ -179,6 +180,18 @@ export async function POST(req) {
         total,
       });
 
+      if (paymentMethod !== "cod") {
+        await PaymentTransaction.create({
+          order: order._id,
+          provider: paymentMethod,
+          merchantReference: orderNumber,
+          amount: total,
+          currency: "PKR",
+          status: "created",
+          idempotencyKey: randomBytes(32).toString("hex"),
+        });
+      }
+
       sendOrderConfirmationEmail(order).catch((err) =>
         console.error("Order confirmation email failed:", err)
       );
@@ -188,6 +201,10 @@ export async function POST(req) {
 
       return Response.json({ orderNumber: order.orderNumber, confirmationToken }, { status: 201 });
     } catch (err) {
+      if (typeof order !== "undefined" && order?._id) {
+        await Order.findByIdAndDelete(order._id);
+      }
+
       for (const item of reservedItems) {
         await Product.findByIdAndUpdate(item.product, { $inc: { stock: item.quantity } });
       }
