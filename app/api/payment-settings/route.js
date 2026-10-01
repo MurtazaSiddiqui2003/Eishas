@@ -1,3 +1,4 @@
+import { requireAdmin } from "@/lib/requireAdmin";
 import { connectDB } from "@/lib/mongodb";
 import PaymentSettings from "@/models/PaymentSettings";
 
@@ -13,6 +14,7 @@ export async function GET() {
 }
 
 export async function POST(req) {
+  if (!requireAdmin()) return Response.json({ error: "Not authorized" }, { status: 401 });
   try {
     await connectDB();
     const body = await req.json();
