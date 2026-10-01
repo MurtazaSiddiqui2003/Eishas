@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { connectDB } from "@/lib/mongodb";
 import Order from "@/models/Order";
@@ -85,9 +86,9 @@ export default async function OrderConfirmationPage({ params }) {
   return (
     <main className="min-h-screen bg-[var(--ivory)] text-[var(--ink)] font-['Inter'] flex flex-col">
       <div className="w-full max-w-[560px] mx-auto px-6 py-14 flex-1">
-        <a href="/" className="block text-center font-['Cormorant_Garamond'] text-2xl mb-8">
-          Eisha&rsquo;s
-        </a>
+        <Link href="/" className="block text-center font-['Cormorant_Garamond'] text-2xl mb-8" aria-label="Eisha’s Collection home">
+          Eisha&rsquo;s Collection
+        </Link>
 
         <div className="text-center mb-8">
           <p className="text-xs uppercase tracking-widest text-[var(--gold-deep)] mb-2">
