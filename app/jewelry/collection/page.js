@@ -8,6 +8,26 @@ import Footer from "@/components/Footer";
 
 export const dynamic = "force-dynamic";
 
+export async function generateMetadata() {
+  await connectDB();
+  const settings = await Settings.findOne({ store: "jewelry" }).lean();
+  const ogImage = settings?.heroImage;
+
+  return {
+    title: "Eisha's Jewelry — Full Collection",
+    description:
+      "Shop the full Eisha's Jewelry collection of earrings, jewelry sets, bangles, and timeless pieces.",
+    openGraph: ogImage
+      ? {
+          title: "Eisha's Jewelry — Full Collection",
+          description:
+            "Shop the full Eisha's Jewelry collection of earrings, jewelry sets, bangles, and timeless pieces.",
+          images: [{ url: ogImage, width: 1200, height: 630 }],
+        }
+      : undefined,
+  };
+}
+
 async function getData() {
   await connectDB();
   const [products, settings, paymentSettings] = await Promise.all([
