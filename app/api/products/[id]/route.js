@@ -1,6 +1,7 @@
 import { requireAdmin } from "@/lib/requireAdmin";
 import { connectDB } from "@/lib/mongodb";
 import Product from "@/models/Product";
+import { validateProductInput } from "@/lib/validateProduct";
 
 export async function DELETE(req, { params }) {
   if (!requireAdmin()) return Response.json({ error: "Not authorized" }, { status: 401 });
@@ -19,7 +20,10 @@ export async function PATCH(req, { params }) {
   try {
     await connectDB();
     const body = await req.json();
-    const product = await Product.findByIdAndUpdate(params.id, body, { new: true });
+    const validation = validateProductInput(body, { partial: true });
+    if (validation.error) return Response.json({ error: validation.error }, { status: 400 });
+
+    const product = await Product.findByIdAndUpdate(params.id, validation.data, { new: true, runValidators: true });
     return Response.json(product);
   } catch (err) {
     console.error("PATCH /api/products/[id] failed:", err);
