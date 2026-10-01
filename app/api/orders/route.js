@@ -43,8 +43,24 @@ export async function POST(req) {
       return Response.json({ error: "Cart is empty" }, { status: 400 });
     }
 
-    if (!customerName || !shippingAddress?.line1 || !shippingAddress?.city || !shippingAddress?.phone) {
+    const name = typeof customerName === "string" ? customerName.trim() : "";
+    const email = typeof customerEmail === "string" ? customerEmail.trim().toLowerCase() : "";
+    const line1 = typeof shippingAddress?.line1 === "string" ? shippingAddress.line1.trim() : "";
+    const city = typeof shippingAddress?.city === "string" ? shippingAddress.city.trim() : "";
+    const province = typeof shippingAddress?.province === "string" ? shippingAddress.province.trim() : "";
+    const postalCode = typeof shippingAddress?.postalCode === "string" ? shippingAddress.postalCode.trim() : "";
+    const phone = typeof shippingAddress?.phone === "string" ? shippingAddress.phone.trim() : "";
+
+    if (!name || !line1 || !city || !phone) {
       return Response.json({ error: "Missing required shipping details" }, { status: 400 });
+    }
+
+    if (name.length > 100 || line1.length > 250 || city.length > 100 || province.length > 100 || postalCode.length > 30 || phone.length > 30) {
+      return Response.json({ error: "One or more shipping details are too long" }, { status: 400 });
+    }
+
+    if (email && (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))) {
+      return Response.json({ error: "Please enter a valid email address" }, { status: 400 });
     }
 
     if (!VALID_METHODS.includes(paymentMethod)) {
@@ -146,11 +162,18 @@ export async function POST(req) {
         orderNumber,
         confirmationToken,
         user: session?.user?.id || undefined,
-        customerName,
-        customerEmail,
+        customerName: name,
+        customerEmail: email || undefined,
         paymentMethod,
         items: serverItems,
-        shippingAddress,
+        shippingAddress: {
+          line1,
+          city,
+          province: province || undefined,
+          postalCode: postalCode || undefined,
+          country: "Pakistan",
+          phone,
+        },
         subtotal,
         deliveryFee,
         total,
