@@ -1,5 +1,6 @@
 import { getServerSession } from "next-auth";
 import { cookies } from "next/headers";
+import { adminCookie, isValidAdminToken } from "@/lib/adminAuth";
 import { authOptions } from "@/lib/auth";
 import { connectDB } from "@/lib/mongodb";
 import Order from "@/models/Order";
@@ -12,12 +13,10 @@ import { sendOrderConfirmationEmail, sendAdminNotificationEmail } from "@/lib/em
 const VALID_METHODS = ["easypaisa", "jazzcash", "sadapay", "bank_transfer", "cod"];
 
 function isAdmin() {
-  return cookies().get("eishas_admin")?.value === process.env.ADMIN_PASSWORD;
+  return isValidAdminToken(cookies().get(adminCookie.name)?.value);
 }
 
-// GET -> list every order (used by the admin Orders tab). Admin-only —
-// this previously had no protection at all, meaning anyone who found
-// this URL could see every customer's name, address, and phone number.
+// GET -> list every order (used by the admin Orders tab). Admin-only.
 export async function GET() {
   try {
     if (!isAdmin()) {
