@@ -1,3 +1,4 @@
+import { randomBytes } from "crypto";
 import { getServerSession } from "next-auth";
 import { cookies } from "next/headers";
 import { adminCookie, isValidAdminToken } from "@/lib/adminAuth";
@@ -135,6 +136,7 @@ export async function POST(req) {
 
       const session = await getServerSession(authOptions);
       const orderNumber = await getNextOrderNumber();
+      const confirmationToken = randomBytes(32).toString("hex");
 
       const subtotal = serverItems.reduce((sum, i) => sum + i.price * i.quantity, 0);
       const deliveryFee = getDeliveryFee(subtotal);
@@ -142,6 +144,7 @@ export async function POST(req) {
 
       const order = await Order.create({
         orderNumber,
+        confirmationToken,
         user: session?.user?.id || undefined,
         customerName,
         customerEmail,
@@ -160,7 +163,7 @@ export async function POST(req) {
         console.error("Admin notification email failed:", err)
       );
 
-      return Response.json(order, { status: 201 });
+      return Response.json({ orderNumber: order.orderNumber, confirmationToken }, { status: 201 });
     } catch (err) {
       for (const item of reservedItems) {
         await Product.findByIdAndUpdate(item.product, { $inc: { stock: item.quantity } });
