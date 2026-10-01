@@ -24,10 +24,12 @@ export default function ProductGrid({ products, emptyMessage, storeHref }) {
           ? Math.round(((product.compareAtPrice - product.price) / product.compareAtPrice) * 100)
           : 0;
         const secondImage = product.images?.[1];
+        const hasVariants = Boolean(product.sizes?.length || product.colors?.length);
+        const productHref = `${storeHref}/${product.slug}`;
 
         return (
           <article key={product._id} className="flex flex-col gap-1.5 group">
-            <Link href={`${storeHref}/${product.slug}`} className="block">
+            <Link href={productHref} className="block" aria-label={`View ${product.name}`}>
               <div className="relative w-full aspect-[3/4] mb-3 overflow-hidden bg-[color-mix(in_srgb,var(--ink)_6%,transparent)]">
                 {product.images?.[0] ? (
                   <>
@@ -49,7 +51,7 @@ export default function ProductGrid({ products, emptyMessage, storeHref }) {
                     )}
                   </>
                 ) : (
-                  <div className="w-full h-full bg-placeholder-pattern" />
+                  <div className="w-full h-full bg-placeholder-pattern" aria-hidden="true" />
                 )}
 
                 {onSale && (
@@ -65,6 +67,7 @@ export default function ProductGrid({ products, emptyMessage, storeHref }) {
                 {(product.categories || []).join(", ")}
               </p>
             </Link>
+
             <div className="flex items-baseline gap-2.5 mt-0.5">
               <span className="font-body font-medium text-theme-accent">
                 {formatPrice(product.price)}
@@ -75,18 +78,37 @@ export default function ProductGrid({ products, emptyMessage, storeHref }) {
                 </span>
               ) : null}
             </div>
+
             {product.stock > 0 && product.stock <= 5 && (
-              <p className="text-xs text-[#b3261e] font-body -mt-1">Only {product.stock} left</p>
+              <p className="text-xs text-[#b3261e] font-body -mt-1" aria-live="polite">
+                Only {product.stock} left
+              </p>
             )}
-            <button
-              className="mt-2 self-start px-4 py-2.5 border border-theme-accent text-theme-accent font-body text-xs tracking-wide uppercase transition-colors hover:bg-theme-accent hover:text-theme-bg disabled:opacity-40 disabled:cursor-not-allowed"
-              onClick={() =>
-                addItem(product, 1, { size: product.sizes?.[0] || null, color: product.colors?.[0] || null })
-              }
-              disabled={product.stock <= 0}
-            >
-              {product.stock <= 0 ? "Out of stock" : "Add to bag"}
-            </button>
+
+            {product.stock <= 0 ? (
+              <button
+                type="button"
+                disabled
+                className="mt-2 self-start px-4 py-2.5 border border-theme-accent text-theme-accent font-body text-xs tracking-wide uppercase opacity-40 cursor-not-allowed"
+              >
+                Out of stock
+              </button>
+            ) : hasVariants ? (
+              <Link
+                href={productHref}
+                className="mt-2 self-start px-4 py-2.5 border border-theme-accent text-theme-accent font-body text-xs tracking-wide uppercase transition-colors hover:bg-theme-accent hover:text-theme-bg"
+              >
+                Choose options
+              </Link>
+            ) : (
+              <button
+                type="button"
+                className="mt-2 self-start px-4 py-2.5 border border-theme-accent text-theme-accent font-body text-xs tracking-wide uppercase transition-colors hover:bg-theme-accent hover:text-theme-bg"
+                onClick={() => addItem(product, 1)}
+              >
+                Add to bag
+              </button>
+            )}
           </article>
         );
       })}
