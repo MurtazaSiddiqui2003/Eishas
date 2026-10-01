@@ -18,6 +18,9 @@ export async function generateMetadata() {
   const ogImage = settings?.heroImage;
 
   return {
+    title: "Eisha's Fashion — Eastern Wear in Pakistan",
+    description:
+      "Explore Eisha's Fashion for eastern wear including suits, sarees, lehngas, and more, delivered across Pakistan.",
     openGraph: ogImage ? { images: [{ url: ogImage, width: 1200, height: 630 }] } : undefined,
   };
 }
@@ -53,7 +56,7 @@ export default async function ApparelPage() {
 
   return (
     <>
-      <StoreNav storeName="Eisha's Collection" homeHref="/apparel" logo={settings?.logo} />
+      <StoreNav storeName="Eisha's Fashion" homeHref="/apparel" logo={settings?.logo} />
       {border}
 
       <HeroBanner
