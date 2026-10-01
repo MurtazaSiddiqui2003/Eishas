@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { randomBytes } from "crypto";
-import connectDB from "@/lib/mongodb";
+import { connectDB } from "@/lib/mongodb";
 import Order from "@/models/Order";
 import PaymentTransaction from "@/models/PaymentTransaction";
 import {
@@ -71,7 +71,9 @@ export async function POST(request) {
     const config = getJazzCashConfig();
     const now = new Date();
     const expiry = new Date(now.getTime() + 30 * 60 * 1000);
-    const transactionReference = getJazzCashTransactionReference(order.orderNumber);
+    const transactionReference = getJazzCashTransactionReference(
+      order.orderNumber
+    );
 
     const fields = {
       pp_Version: "1.1",
@@ -92,13 +94,17 @@ export async function POST(request) {
       ppmpf_2: randomBytes(16).toString("hex"),
     };
 
-    fields.pp_SecureHash = createJazzCashSecureHash(fields, config.integritySalt);
+    fields.pp_SecureHash = createJazzCashSecureHash(
+      fields,
+      config.integritySalt
+    );
 
     transaction.transactionId = transactionReference;
     transaction.merchantReference = order.orderNumber;
     transaction.amount = order.total;
     transaction.status = "pending";
-    transaction.idempotencyKey = transaction.idempotencyKey || randomBytes(32).toString("hex");
+    transaction.idempotencyKey =
+      transaction.idempotencyKey || randomBytes(32).toString("hex");
     await transaction.save();
 
     return NextResponse.json({
