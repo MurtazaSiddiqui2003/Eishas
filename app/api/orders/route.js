@@ -67,24 +67,58 @@ export async function POST(req) {
       return Response.json({ error: "That payment method isn't available right now" }, { status: 400 });
     }
 
-    // Check stock for every item before committing to anything.
+    // Rebuild the order from trusted product data. Never trust price, name,
+    // store, image, or totals sent by the browser — the cart lives in
+    // localStorage and can be modified by the customer.
+    const serverItems = [];
+    const quantitiesByProduct = new Map();
+
     for (const item of items) {
+      const quantity = Number(item.quantity);
+
+      if (!Number.isInteger(quantity) || quantity < 1) {
+        return Response.json({ error: "Invalid item quantity" }, { status: 400 });
+      }
+
       const product = await Product.findById(item.productId);
       if (!product) {
-        return Response.json({ error: `${item.name} is no longer available` }, { status: 400 });
+        return Response.json({ error: "One of the products is no longer available" }, { status: 400 });
       }
-      if (product.stock < item.quantity) {
+
+      const requestedQuantity = (quantitiesByProduct.get(product._id.toString()) || 0) + quantity;
+      quantitiesByProduct.set(product._id.toString(), requestedQuantity);
+
+      if (product.stock < requestedQuantity) {
         return Response.json(
-          { error: `Only ${product.stock} left of ${item.name} — please adjust your cart` },
+          { error: `Only ${product.stock} left of ${product.name} — please adjust your cart` },
           { status: 400 }
         );
       }
+
+      if (item.size && (!product.sizes || !product.sizes.includes(item.size))) {
+        return Response.json({ error: `Selected size is unavailable for ${product.name}` }, { status: 400 });
+      }
+
+      if (item.color && (!product.colors || !product.colors.includes(item.color))) {
+        return Response.json({ error: `Selected color is unavailable for ${product.name}` }, { status: 400 });
+      }
+
+      serverItems.push({
+        product: product._id,
+        store: product.store,
+        name: product.name,
+        price: product.price,
+        quantity,
+        size: item.size || undefined,
+        color: item.color || undefined,
+        image: product.images?.[0] || undefined,
+      });
     }
 
     const session = await getServerSession(authOptions);
     const orderNumber = await getNextOrderNumber();
 
-    const subtotal = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
+    const subtotal = serverItems.reduce((sum, i) => sum + i.price * i.quantity, 0);
     const deliveryFee = getDeliveryFee(subtotal);
     const total = subtotal + deliveryFee;
 
@@ -94,16 +128,7 @@ export async function POST(req) {
       customerName,
       customerEmail,
       paymentMethod,
-      items: items.map((i) => ({
-        product: i.productId,
-        store: i.store,
-        name: i.name,
-        price: i.price,
-        quantity: i.quantity,
-        size: i.size || undefined,
-        color: i.color || undefined,
-        image: i.image,
-      })),
+      items: serverItems,
       shippingAddress,
       subtotal,
       deliveryFee,
