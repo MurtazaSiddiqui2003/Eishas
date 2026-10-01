@@ -8,9 +8,10 @@ import { formatPrice } from "@/lib/currency";
 export default function ProductDetail({ product }) {
   const { addItem } = useCart();
   const [activeImage, setActiveImage] = useState(0);
-  const [size, setSize] = useState(product.sizes?.[0] || null);
-  const [color, setColor] = useState(product.colors?.[0] || null);
+  const [size, setSize] = useState(product.sizes?.length ? null : null);
+  const [color, setColor] = useState(product.colors?.length ? null : null);
   const [added, setAdded] = useState(false);
+  const [variantError, setVariantError] = useState("");
 
   const onSale = product.compareAtPrice > product.price;
   const discountPercent = onSale
@@ -18,6 +19,17 @@ export default function ProductDetail({ product }) {
     : 0;
 
   function handleAdd() {
+    if (product.sizes?.length > 0 && !size) {
+      setVariantError("Please select a size.");
+      return;
+    }
+
+    if (product.colors?.length > 0 && !color) {
+      setVariantError("Please select a color.");
+      return;
+    }
+
+    setVariantError("");
     addItem(product, 1, { size, color });
     setAdded(true);
     setTimeout(() => setAdded(false), 1500);
@@ -28,9 +40,6 @@ export default function ProductDetail({ product }) {
       <div>
         <div className="relative w-full aspect-[3/4] mb-3 bg-[color-mix(in_srgb,var(--ink)_6%,transparent)] overflow-hidden">
           {product.images?.[activeImage] ? (
-            // key={activeImage} remounts the image on every thumbnail click,
-            // which replays the fadeIn animation — a smooth cross-fade
-            // instead of the picture just instantly swapping out.
             <Image
               key={activeImage}
               src={product.images[activeImage]}
@@ -40,7 +49,7 @@ export default function ProductDetail({ product }) {
               className="object-cover animate-fadeIn"
             />
           ) : (
-            <div className="w-full h-full bg-placeholder-pattern" />
+            <div className="w-full h-full bg-placeholder-pattern" aria-hidden="true" />
           )}
 
           {onSale && (
@@ -54,8 +63,11 @@ export default function ProductDetail({ product }) {
           <div className="flex gap-2 flex-wrap">
             {product.images.map((img, i) => (
               <button
+                type="button"
                 key={img}
                 onClick={() => setActiveImage(i)}
+                aria-label={`View image ${i + 1} of ${product.images.length}`}
+                aria-pressed={i === activeImage}
                 className={`relative w-16 h-20 shrink-0 border overflow-hidden transition-colors ${
                   i === activeImage ? "border-theme-accent" : "border-transparent"
                 }`}
@@ -81,7 +93,7 @@ export default function ProductDetail({ product }) {
           )}
         </div>
         {product.stock > 0 && product.stock <= 5 && (
-          <p className="text-sm text-[#b3261e] font-body mb-4">Only {product.stock} left in stock</p>
+          <p className="text-sm text-[#b3261e] font-body mb-4" aria-live="polite">Only {product.stock} left in stock</p>
         )}
         <p className="font-body text-sm leading-relaxed opacity-80 mb-6 whitespace-pre-line">
           {product.description}
@@ -93,8 +105,10 @@ export default function ProductDetail({ product }) {
             <div className="flex gap-2 flex-wrap">
               {product.colors.map((c) => (
                 <button
+                  type="button"
                   key={c}
-                  onClick={() => setColor(c)}
+                  onClick={() => { setColor(c); setVariantError(""); }}
+                  aria-pressed={color === c}
                   className={`px-3.5 py-2 border font-body text-sm ${
                     color === c
                       ? "bg-theme-accent text-theme-bg border-theme-accent"
@@ -114,8 +128,10 @@ export default function ProductDetail({ product }) {
             <div className="flex gap-2 flex-wrap">
               {product.sizes.map((s) => (
                 <button
+                  type="button"
                   key={s}
-                  onClick={() => setSize(s)}
+                  onClick={() => { setSize(s); setVariantError(""); }}
+                  aria-pressed={size === s}
                   className={`px-3.5 py-2 border font-body text-sm ${
                     size === s
                       ? "bg-theme-accent text-theme-bg border-theme-accent"
@@ -136,7 +152,12 @@ export default function ProductDetail({ product }) {
           {product.volume && <p>Volume: {product.volume}</p>}
         </div>
 
+        {variantError && (
+          <p className="text-sm text-[#b3261e] font-body mb-3" role="alert">{variantError}</p>
+        )}
+
         <button
+          type="button"
           onClick={handleAdd}
           disabled={product.stock <= 0}
           className="w-full py-3.5 border border-theme-accent text-theme-accent font-body text-sm uppercase tracking-wide hover:bg-theme-accent hover:text-theme-bg transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
