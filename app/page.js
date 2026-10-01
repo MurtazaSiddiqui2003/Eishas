@@ -1,10 +1,11 @@
+import Link from "next/link";
 import { connectDB } from "@/lib/mongodb";
 import Settings from "@/models/Settings";
 
 export const dynamic = "force-dynamic";
 
 const doors = [
-  { href: "/apparel", key: "apparel", label: "Eisha's Collection" },
+  { href: "/apparel", key: "apparel", label: "Eisha's Fashion" },
   { href: "/beauty", key: "beauty", label: "Eisha's Beauty" },
   { href: "/jewelry", key: "jewelry", label: "Eisha's Jewelry" },
 ];
@@ -15,9 +16,9 @@ export async function generateMetadata() {
   const ogImage = apparelSettings?.doorImage;
 
   return {
-    title: "Eisha's — Eastern Wear, Beauty & Jewelry in Pakistan",
+    title: "Eisha's Collection — Fashion, Beauty & Jewelry in Pakistan",
     description:
-      "Shop eastern wear, beauty, and jewelry from Eisha's — a Pakistani clothing brand with sarees, lehngas, suits, skincare, and fine jewelry, delivered across Pakistan.",
+      "Explore Eisha's Collection — fashion, beauty, and jewelry from a Pakistani brand, with delivery across Pakistan.",
     openGraph: ogImage ? { images: [{ url: ogImage, width: 1200, height: 630 }] } : undefined,
   };
 }
@@ -38,10 +39,10 @@ export default async function HomePage() {
   const orgJsonLd = {
     "@context": "https://schema.org",
     "@type": "Organization",
-    name: "Eisha's",
+    name: "Eisha's Collection",
     url: process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
     description:
-      "Eisha's is a Pakistani clothing brand offering eastern wear, beauty products, and jewelry.",
+      "Eisha's Collection is a Pakistani brand offering fashion, beauty products, and jewelry.",
     address: {
       "@type": "PostalAddress",
       addressCountry: "PK",
@@ -58,7 +59,7 @@ export default async function HomePage() {
         const images = doorImages[door.key] || {};
 
         return (
-          <a
+          <Link
             key={door.href}
             href={door.href}
             className={`group relative flex-1 h-1/3 md:h-full overflow-hidden block ${
@@ -66,10 +67,6 @@ export default async function HomePage() {
             }`}
           >
             {images.desktop ? (
-              // A <picture> element (not next/image) is the right tool here —
-              // mobile and desktop are genuinely different crops of the photo,
-              // not just different sizes of the same crop, so the browser needs
-              // to pick between two distinct images rather than one resized one.
               <picture>
                 {images.mobile && (
                   <source media="(max-width: 767px)" srcSet={images.mobile} />
@@ -93,7 +90,7 @@ export default async function HomePage() {
             <span className="absolute bottom-10 left-1/2 -translate-x-1/2 md:left-8 md:translate-x-0 font-['Cormorant_Garamond'] font-medium text-2xl md:text-3xl text-white tracking-wide whitespace-nowrap">
               {door.label}
             </span>
-          </a>
+          </Link>
         );
       })}
     </main>
