@@ -115,29 +115,57 @@ export async function POST(req) {
       });
     }
 
-    const session = await getServerSession(authOptions);
-    const orderNumber = await getNextOrderNumber();
+    // Reserve stock atomically before creating the order. The stock check
+    // above is useful for a friendly error, but it is not enough by itself:
+    // two checkouts can pass it at the same time. This conditional update
+    // makes the database enforce the stock limit.
+    const reservedItems = [];
+    try {
+      for (const item of serverItems) {
+        const updatedProduct = await Product.findOneAndUpdate(
+          { _id: item.product, stock: { $gte: item.quantity } },
+          { $inc: { stock: -item.quantity } },
+          { new: true }
+        );
 
-    const subtotal = serverItems.reduce((sum, i) => sum + i.price * i.quantity, 0);
-    const deliveryFee = getDeliveryFee(subtotal);
-    const total = subtotal + deliveryFee;
+        if (!updatedProduct) {
+          throw new Error(`Only ${item.quantity > 1 ? "enough stock is not available" : "1 item"} of ${item.name} is available`);
+        }
 
-    const order = await Order.create({
-      orderNumber,
-      user: session?.user?.id || undefined,
-      customerName,
-      customerEmail,
-      paymentMethod,
-      items: serverItems,
-      shippingAddress,
-      subtotal,
-      deliveryFee,
-      total,
-    });
+        reservedItems.push(item);
+      }
 
-    // Decrement stock now that the order is confirmed to exist.
-    for (const item of items) {
-      await Product.findByIdAndUpdate(item.productId, { $inc: { stock: -item.quantity } });
+      const session = await getServerSession(authOptions);
+      const orderNumber = await getNextOrderNumber();
+
+      const subtotal = serverItems.reduce((sum, i) => sum + i.price * i.quantity, 0);
+      const deliveryFee = getDeliveryFee(subtotal);
+      const total = subtotal + deliveryFee;
+
+      const order = await Order.create({
+        orderNumber,
+        user: session?.user?.id || undefined,
+        customerName,
+        customerEmail,
+        paymentMethod,
+        items: serverItems,
+        shippingAddress,
+        subtotal,
+        deliveryFee,
+        total,
+      });
+
+      // Fire-and-forget — email failures should never fail the order itself.
+      sendOrderConfirmationEmail(order);
+      sendAdminNotificationEmail(order, settings?.notificationEmail);
+
+      return Response.json(order, { status: 201 });
+    } catch (err) {
+      // If order creation fails after stock was reserved, put the stock back.
+      for (const item of reservedItems) {
+        await Product.findByIdAndUpdate(item.product, { $inc: { stock: item.quantity } });
+      }
+      throw err;
     }
 
     // Fire-and-forget — email failures should never fail the order itself.
