@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState, useEffect, useMemo } from "react";
 import { useCart } from "@/context/CartContext";
 import { formatPrice } from "@/lib/currency";
@@ -39,11 +40,6 @@ export default function CheckoutPage() {
       .catch(() => setPaymentSettings({}));
   }, []);
 
-  // Only offer a method once it's actually been set up in the admin
-  // Payment tab — this is what keeps the checkout page in sync with
-  // whatever you've configured, without a separate "enable" toggle for
-  // each transfer method (COD is the one exception, since there's no
-  // account detail whose presence would otherwise imply it's ready).
   const availableMethods = useMemo(() => {
     if (!paymentSettings) return [];
     const methods = [];
@@ -70,7 +66,7 @@ export default function CheckoutPage() {
     setError("");
 
     if (!paymentMethod) {
-      setError("Please choose a payment method");
+      setError("Please choose a payment method.");
       return;
     }
 
@@ -99,10 +95,6 @@ export default function CheckoutPage() {
       try {
         data = await res.json();
       } catch {
-        // The server returned something that wasn't JSON at all — a real
-        // crash rather than a normal error response. With the try/catch
-        // fix in the API route this shouldn't happen anymore, but this is
-        // a safety net so a customer never sees a raw parsing error.
         throw new Error("Something went wrong on our end — please try again in a moment.");
       }
 
@@ -122,9 +114,9 @@ export default function CheckoutPage() {
       <main className="min-h-screen bg-[var(--ivory)] text-[var(--ink)] flex items-center justify-center p-6">
         <div className="text-center">
           <p className="font-['Cormorant_Garamond'] text-xl mb-3">Your bag is empty.</p>
-          <a href="/" className="text-[var(--gold-deep)] underline font-['Inter'] text-sm">
-            Back to Eisha&rsquo;s
-          </a>
+          <Link href="/" className="text-[var(--gold-deep)] underline font-['Inter'] text-sm">
+            Back to Eisha&rsquo;s Collection
+          </Link>
         </div>
       </main>
     );
@@ -137,32 +129,51 @@ export default function CheckoutPage() {
     <main className="min-h-screen bg-[var(--ivory)] text-[var(--ink)] font-['Inter'] flex flex-col">
       <div className="w-full max-w-[900px] mx-auto px-6 py-10 grid grid-cols-1 md:grid-cols-[1.3fr_1fr] gap-10 flex-1">
         <div>
-          <a href="/" className="block font-['Cormorant_Garamond'] text-2xl mb-8">
-            Eisha&rsquo;s
-          </a>
+          <Link href="/" className="block font-['Cormorant_Garamond'] text-2xl mb-8">
+            Eisha&rsquo;s Collection
+          </Link>
+
           <h1 className="font-['Cormorant_Garamond'] text-2xl mb-6">Checkout</h1>
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-            <input className={inputClass} placeholder="Full name" value={form.customerName} onChange={update("customerName")} required />
-            <input className={inputClass} type="email" placeholder="Email (optional)" value={form.customerEmail} onChange={update("customerEmail")} />
-            <input className={inputClass} placeholder="Phone number" value={form.phone} onChange={update("phone")} required />
-            <input className={inputClass} placeholder="Address" value={form.line1} onChange={update("line1")} required />
-            <div className="flex gap-3">
-              <input className={inputClass} placeholder="City" value={form.city} onChange={update("city")} required />
-              <input className={inputClass} placeholder="Province (optional)" value={form.province} onChange={update("province")} />
-            </div>
-            <input className={inputClass} placeholder="Postal code (optional)" value={form.postalCode} onChange={update("postalCode")} />
+            <label className="sr-only" htmlFor="customerName">Full name</label>
+            <input id="customerName" name="name" autoComplete="name" className={inputClass} placeholder="Full name" value={form.customerName} onChange={update("customerName")} required />
 
-            <p className="text-xs uppercase tracking-wide opacity-60 mt-3 mb-1">Payment method</p>
+            <label className="sr-only" htmlFor="customerEmail">Email</label>
+            <input id="customerEmail" name="email" autoComplete="email" className={inputClass} type="email" placeholder="Email (optional)" value={form.customerEmail} onChange={update("customerEmail")} />
+
+            <label className="sr-only" htmlFor="phone">Phone number</label>
+            <input id="phone" name="phone" autoComplete="tel" inputMode="tel" className={inputClass} placeholder="Phone number" value={form.phone} onChange={update("phone")} required />
+
+            <label className="sr-only" htmlFor="line1">Address</label>
+            <input id="line1" name="address" autoComplete="street-address" className={inputClass} placeholder="Address" value={form.line1} onChange={update("line1")} required />
+
+            <div className="flex gap-3">
+              <div className="flex-1">
+                <label className="sr-only" htmlFor="city">City</label>
+                <input id="city" name="city" autoComplete="address-level2" className={inputClass} placeholder="City" value={form.city} onChange={update("city")} required />
+              </div>
+              <div className="flex-1">
+                <label className="sr-only" htmlFor="province">Province</label>
+                <input id="province" name="province" autoComplete="address-level1" className={inputClass} placeholder="Province (optional)" value={form.province} onChange={update("province")} />
+              </div>
+            </div>
+
+            <label className="sr-only" htmlFor="postalCode">Postal code</label>
+            <input id="postalCode" name="postalCode" autoComplete="postal-code" inputMode="numeric" className={inputClass} placeholder="Postal code (optional)" value={form.postalCode} onChange={update("postalCode")} />
+
+            <p className="text-xs uppercase tracking-wide opacity-60 mt-3 mb-1" id="payment-method-heading">
+              Payment method
+            </p>
 
             {paymentSettings === null ? (
               <p className="text-sm opacity-50">Loading payment options…</p>
             ) : availableMethods.length === 0 ? (
-              <p className="text-sm text-[#b3261e]">
+              <p className="text-sm text-[#b3261e]" role="alert">
                 No payment methods are set up yet — please contact us directly to place this order.
               </p>
             ) : (
-              <div className="flex flex-col gap-2">
+              <div className="flex flex-col gap-2" role="radiogroup" aria-labelledby="payment-method-heading">
                 {availableMethods.map((method) => (
                   <label
                     key={method}
@@ -188,7 +199,7 @@ export default function CheckoutPage() {
               for completing payment.
             </p>
 
-            {error && <p className="text-sm text-[#b3261e]">{error}</p>}
+            {error && <p className="text-sm text-[#b3261e]" role="alert">{error}</p>}
 
             <button
               type="submit"
@@ -230,7 +241,12 @@ export default function CheckoutPage() {
           </div>
         </div>
       </div>
-      <Footer variant="shell" whatsappNumber={paymentSettings?.whatsappNumber} contactPhone={paymentSettings?.contactPhone} />
+
+      <Footer
+        variant="shell"
+        whatsappNumber={paymentSettings?.whatsappNumber}
+        contactPhone={paymentSettings?.contactPhone}
+      />
     </main>
   );
 }
