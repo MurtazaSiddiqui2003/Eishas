@@ -8,6 +8,14 @@ import Footer from "@/components/Footer";
 
 export const dynamic = "force-dynamic";
 
+export async function generateMetadata() {
+  return {
+    title: "Eisha's Fashion — Full Collection",
+    description:
+      "Shop the full Eisha's Fashion collection of eastern wear, including suits, sarees, lehngas, and more.",
+  };
+}
+
 async function getData() {
   await connectDB();
   const [products, settings, paymentSettings] = await Promise.all([
@@ -28,11 +36,11 @@ export default async function ApparelCollectionPage() {
 
   return (
     <>
-      <StoreNav storeName="Eisha's Collection" homeHref="/apparel" logo={settings?.logo} />
+      <StoreNav storeName="Eisha's Fashion" homeHref="/apparel" logo={settings?.logo} />
 
       <div className="text-center pt-12 pb-2">
         <p className="font-body text-xs tracking-[0.18em] uppercase text-theme-accent mb-2">
-          The Full Collection
+          Eisha's Fashion
         </p>
         <h1 className="font-display font-medium text-2xl text-theme-ink">
           Suits &middot; Sarees &middot; Lehngas
