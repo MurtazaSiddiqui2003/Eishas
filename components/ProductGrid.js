@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useCart } from "@/context/CartContext";
 import { formatPrice } from "@/lib/currency";
 
@@ -26,7 +27,7 @@ export default function ProductGrid({ products, emptyMessage, storeHref }) {
 
         return (
           <article key={product._id} className="flex flex-col gap-1.5 group">
-            <a href={`${storeHref}/${product.slug}`} className="block">
+            <Link href={`${storeHref}/${product.slug}`} className="block">
               <div className="relative w-full aspect-[3/4] mb-3 overflow-hidden bg-[color-mix(in_srgb,var(--ink)_6%,transparent)]">
                 {product.images?.[0] ? (
                   <>
@@ -37,9 +38,6 @@ export default function ProductGrid({ products, emptyMessage, storeHref }) {
                       sizes="(max-width: 700px) 100vw, 25vw"
                       className="object-cover transition-transform duration-500 group-hover:scale-[1.04]"
                     />
-                    {/* A second product photo cross-fades in on hover, if there is one —
-                        a common e-commerce pattern for showing a garment/product from
-                        a different angle without needing a click. */}
                     {secondImage && (
                       <Image
                         src={secondImage}
@@ -66,7 +64,7 @@ export default function ProductGrid({ products, emptyMessage, storeHref }) {
               <p className="font-body text-xs tracking-wider uppercase opacity-55">
                 {(product.categories || []).join(", ")}
               </p>
-            </a>
+            </Link>
             <div className="flex items-baseline gap-2.5 mt-0.5">
               <span className="font-body font-medium text-theme-accent">
                 {formatPrice(product.price)}
