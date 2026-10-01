@@ -1,3 +1,4 @@
+import { requireAdmin } from "@/lib/requireAdmin";
 import { connectDB } from "@/lib/mongodb";
 import Product from "@/models/Product";
 
@@ -21,6 +22,7 @@ export async function GET(req) {
 
 // POST /api/products -> create a product (admin panel uses this)
 export async function POST(req) {
+  if (!requireAdmin()) return Response.json({ error: "Not authorized" }, { status: 401 });
   try {
     await connectDB();
 
