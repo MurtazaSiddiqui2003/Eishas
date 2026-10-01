@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 // variant="store"  → sits inside a store's themed wrapper, picks up its
 //                     colors/fonts automatically via the theme.* classes
 // variant="shell"   → used on cart/checkout/order-confirmation/contact,
@@ -28,20 +30,20 @@ export default function Footer({ variant = "store", whatsappNumber, contactPhone
     <footer className={`${wrapClass} px-8 py-12`}>
       <div className="max-w-[1400px] mx-auto flex flex-wrap gap-10 justify-between">
         <div className="max-w-[260px]">
-          <a href="/" className={isStore ? "font-display text-lg" : "font-['Cormorant_Garamond'] text-lg"}>
-            Eisha&rsquo;s
-          </a>
+          <Link href="/" className={isStore ? "font-display text-lg" : "font-['Cormorant_Garamond'] text-lg"}>
+            Eisha&rsquo;s Collection
+          </Link>
           <p className={`${isStore ? "font-body" : "font-['Inter']"} text-xs opacity-60 mt-2 leading-relaxed`}>
-            Apparel, Beauty, and Jewelry — three worlds, one house.
+            Fashion, Beauty, and Jewelry — three worlds, one house.
           </p>
         </div>
 
         <div>
           <p className={headingClass}>Shop</p>
-          <a href="/apparel" className={linkClass}>Collection</a>
-          <a href="/beauty" className={linkClass}>Beauty</a>
-          <a href="/jewelry" className={linkClass}>Jewelry</a>
-          <a href="/cart" className={linkClass}>Cart</a>
+          <Link href="/apparel" className={linkClass}>Fashion</Link>
+          <Link href="/beauty" className={linkClass}>Beauty</Link>
+          <Link href="/jewelry" className={linkClass}>Jewelry</Link>
+          <Link href="/cart" className={linkClass}>Cart</Link>
         </div>
 
         <div>
@@ -61,19 +63,17 @@ export default function Footer({ variant = "store", whatsappNumber, contactPhone
               {contactPhone}
             </a>
           )}
-          <a href="/contact" className={linkClass}>Contact page</a>
-          <a href="/shipping-returns" className={linkClass}>Shipping &amp; Returns</a>
+          <Link href="/contact" className={linkClass}>Contact page</Link>
+          <Link href="/shipping-returns" className={linkClass}>Shipping &amp; Returns</Link>
         </div>
       </div>
 
       <p
-        className={`${
-          isStore ? "font-body" : "font-['Inter']"
-        } text-center text-xs opacity-45 mt-10 pt-6 border-t ${
+        className={`${isStore ? "font-body" : "font-['Inter']"} text-center text-xs opacity-45 mt-10 pt-6 border-t ${
           isStore ? "border-[color-mix(in_srgb,var(--ink)_10%,transparent)]" : "border-black/10"
         }`}
       >
-        &copy; {new Date().getFullYear()} Eisha&rsquo;s — made with love, for Eisha.
+        &copy; {new Date().getFullYear()} Eisha&rsquo;s Collection — made with love, for Eisha.
       </p>
     </footer>
   );
