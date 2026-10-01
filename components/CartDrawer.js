@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useCart } from "@/context/CartContext";
 import { formatPrice } from "@/lib/currency";
@@ -12,7 +13,7 @@ const storeHrefs = {
 };
 
 export default function CartDrawer() {
-  const { items, removeItem, updateQuantity, total, isOpen, closeCart, addItem } = useCart();
+  const { items, removeItem, updateQuantity, total, isOpen, closeCart } = useCart();
   const [suggestions, setSuggestions] = useState([]);
 
   const remaining = Math.max(FREE_DELIVERY_THRESHOLD - total, 0);
@@ -20,24 +21,26 @@ export default function CartDrawer() {
   const deliveryFee = getDeliveryFee(total);
   const qualifiesFreeDelivery = items.length > 0 && deliveryFee === 0;
 
-  // Suggest a few other products from whichever store was most recently
-  // added to, excluding anything already in the cart.
   useEffect(() => {
     if (!isOpen || items.length === 0) {
       setSuggestions([]);
       return;
     }
+
     const store = items[items.length - 1].store;
     fetch(`/api/products?store=${store}`)
       .then((res) => res.json())
       .then((data) => {
         const cartIds = new Set(items.map((i) => i.productId));
-        setSuggestions((Array.isArray(data) ? data : []).filter((p) => !cartIds.has(p._id)).slice(0, 4));
+        setSuggestions(
+          (Array.isArray(data) ? data : [])
+            .filter((p) => !cartIds.has(p._id) && p.stock > 0)
+            .slice(0, 4)
+        );
       })
       .catch(() => setSuggestions([]));
   }, [isOpen, items]);
 
-  // Prevent the page behind the drawer from scrolling while it's open.
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden";
@@ -61,6 +64,8 @@ export default function CartDrawer() {
         className={`fixed top-0 right-0 h-full w-full max-w-[420px] bg-[var(--ivory)] text-[var(--ink)] z-50 shadow-xl flex flex-col font-['Inter'] transition-transform duration-300 ${
           isOpen ? "translate-x-0" : "translate-x-full"
         }`}
+        aria-label="Shopping bag"
+        aria-hidden={!isOpen}
       >
         <div className="px-5 pt-5 pb-4 border-b border-black/10">
           <p className="text-xs text-center mb-2">
@@ -80,7 +85,12 @@ export default function CartDrawer() {
 
         <div className="flex items-center justify-between px-5 py-4 border-b border-black/10">
           <h2 className="font-['Cormorant_Garamond'] text-xl">Your bag</h2>
-          <button onClick={closeCart} className="text-sm opacity-60 hover:opacity-100">
+          <button
+            type="button"
+            onClick={closeCart}
+            className="text-sm opacity-60 hover:opacity-100"
+            aria-label="Close shopping bag"
+          >
             Close ✕
           </button>
         </div>
@@ -104,6 +114,8 @@ export default function CartDrawer() {
                     )}
                     <div className="flex items-center gap-2 text-sm">
                       <button
+                        type="button"
+                        aria-label={`Decrease quantity of ${item.name}`}
                         className="w-5 h-5 border border-black/20 text-xs leading-none"
                         onClick={() =>
                           updateQuantity(item.productId, item.size, item.color, Math.max(1, item.quantity - 1))
@@ -111,8 +123,10 @@ export default function CartDrawer() {
                       >
                         −
                       </button>
-                      <span>{item.quantity}</span>
+                      <span aria-label={`Quantity ${item.quantity}`}>{item.quantity}</span>
                       <button
+                        type="button"
+                        aria-label={`Increase quantity of ${item.name}`}
                         className="w-5 h-5 border border-black/20 text-xs leading-none"
                         onClick={() =>
                           updateQuantity(item.productId, item.size, item.color, item.quantity + 1)
@@ -125,6 +139,7 @@ export default function CartDrawer() {
                   <div className="text-right text-sm flex flex-col justify-between items-end">
                     <span>{formatPrice(item.price * item.quantity)}</span>
                     <button
+                      type="button"
                       className="text-xs opacity-50 hover:opacity-100 hover:text-[#e08585]"
                       onClick={() => removeItem(item.productId, item.size, item.color)}
                     >
@@ -140,29 +155,33 @@ export default function CartDrawer() {
             <div className="mt-8 pt-6 border-t border-black/10">
               <p className="text-xs uppercase tracking-wide opacity-60 mb-3">You may also like</p>
               <div className="grid grid-cols-2 gap-3">
-                {suggestions.map((p) => (
-                  <div key={p._id} className="text-sm">
-                    <a href={`${storeHrefs[p.store]}/${p.slug}`} onClick={closeCart} className="block">
-                      {p.images?.[0] && (
-                        <img
-                          src={p.images[0]}
-                          alt={p.name}
-                          className="w-full aspect-[3/4] object-cover mb-1.5"
-                        />
-                      )}
-                      <p className="text-xs truncate">{p.name}</p>
-                      <p className="text-xs opacity-70">{formatPrice(p.price)}</p>
-                    </a>
-                    <button
-                      onClick={() =>
-                        addItem(p, 1, { size: p.sizes?.[0] || null, color: p.colors?.[0] || null })
-                      }
-                      className="mt-1 w-full text-[10px] uppercase tracking-wide py-1.5 border border-black/20"
-                    >
-                      Add
-                    </button>
-                  </div>
-                ))}
+                {suggestions.map((p) => {
+                  const href = `${storeHrefs[p.store]}/${p.slug}`;
+                  const hasVariants = Boolean(p.sizes?.length || p.colors?.length);
+
+                  return (
+                    <div key={p._id} className="text-sm">
+                      <Link href={href} onClick={closeCart} className="block">
+                        {p.images?.[0] && (
+                          <img
+                            src={p.images[0]}
+                            alt={p.name}
+                            className="w-full aspect-[3/4] object-cover mb-1.5"
+                          />
+                        )}
+                        <p className="text-xs truncate">{p.name}</p>
+                        <p className="text-xs opacity-70">{formatPrice(p.price)}</p>
+                      </Link>
+                      <Link
+                        href={href}
+                        onClick={closeCart}
+                        className="mt-1 block w-full text-center text-[10px] uppercase tracking-wide py-1.5 border border-black/20"
+                      >
+                        {hasVariants ? "Choose options" : "View product"}
+                      </Link>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
@@ -178,20 +197,20 @@ export default function CartDrawer() {
               <span>Delivery</span>
               <span>{deliveryFee === 0 ? "Free" : formatPrice(deliveryFee)}</span>
             </div>
-            <a
+            <Link
               href="/checkout"
               onClick={closeCart}
               className="block text-center py-3 bg-[var(--ink)] text-[var(--ivory)] font-medium text-sm mb-2"
             >
               Checkout
-            </a>
-            <a
+            </Link>
+            <Link
               href="/cart"
               onClick={closeCart}
               className="block text-center py-2 text-sm underline opacity-75"
             >
               View full cart
-            </a>
+            </Link>
           </div>
         )}
       </aside>
