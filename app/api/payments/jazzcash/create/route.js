@@ -82,16 +82,21 @@ export async function POST(request) {
       pp_MerchantID: config.merchantId,
       pp_SubMerchantID: "",
       pp_Password: config.password,
+      pp_BankID: "",
+      pp_ProductID: "",
       pp_TxnRefNo: transactionReference,
       pp_Amount: formatJazzCashAmount(order.total),
       pp_TxnCurrency: "PKR",
       pp_TxnDateTime: getJazzCashDateTime(now),
-      pp_TxnExpiryDateTime: getJazzCashDateTime(expiry),
       pp_BillReference: order.orderNumber,
       pp_Description: `Eisha's Collection order ${order.orderNumber}`,
+      pp_TxnExpiryDateTime: getJazzCashDateTime(expiry),
       pp_ReturnURL: config.returnUrl,
       ppmpf_1: order.orderNumber,
       ppmpf_2: randomBytes(16).toString("hex"),
+      ppmpf_3: "",
+      ppmpf_4: "",
+      ppmpf_5: "",
     };
 
     fields.pp_SecureHash = createJazzCashSecureHash(
