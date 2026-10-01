@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 const OrderSchema = new mongoose.Schema(
   {
     orderNumber: { type: String, required: true, unique: true }, // e.g. "ES-0001"
+    confirmationToken: { type: String, required: true, unique: true, select: false },
 
     // Optional — guest checkout is allowed, so an order isn't tied to a
     // registered account unless the person was signed in when they ordered.
