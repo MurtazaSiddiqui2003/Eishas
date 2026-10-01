@@ -1,6 +1,7 @@
 import { requireAdmin } from "@/lib/requireAdmin";
 import { connectDB } from "@/lib/mongodb";
 import Product from "@/models/Product";
+import { validateProductInput } from "@/lib/validateProduct";
 
 // GET /api/products?store=apparel  -> list products, optionally filtered by store
 export async function GET(req) {
@@ -27,7 +28,10 @@ export async function POST(req) {
     await connectDB();
 
     const body = await req.json();
-    const product = await Product.create(body);
+    const validation = validateProductInput(body);
+    if (validation.error) return Response.json({ error: validation.error }, { status: 400 });
+
+    const product = await Product.create(validation.data);
 
     return Response.json(product, { status: 201 });
   } catch (err) {
