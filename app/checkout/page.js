@@ -101,7 +101,7 @@ export default function CheckoutPage() {
       if (!res.ok) throw new Error(data.error || "Could not place order");
 
       clearCart();
-      window.location.href = `/order-confirmation/${data.orderNumber}`;
+      window.location.href = `/order-confirmation/${data.orderNumber}?token=${encodeURIComponent(data.confirmationToken)}`;
     } catch (err) {
       setError(err.message);
     } finally {
