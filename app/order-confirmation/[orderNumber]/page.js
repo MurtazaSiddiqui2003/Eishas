@@ -8,10 +8,10 @@ import Footer from "@/components/Footer";
 
 export const dynamic = "force-dynamic";
 
-async function getData(orderNumber) {
+async function getData(orderNumber, confirmationToken) {
   await connectDB();
   const [order, settings] = await Promise.all([
-    Order.findOne({ orderNumber }).lean(),
+    Order.findOne({ orderNumber, confirmationToken }).select("+confirmationToken").lean(),
     PaymentSettings.findOne({ key: "default" }).lean(),
   ]);
   return {
@@ -69,8 +69,11 @@ function PaymentInstructions({ method, settings }) {
   return null;
 }
 
-export default async function OrderConfirmationPage({ params }) {
-  const { order, settings } = await getData(params.orderNumber);
+export default async function OrderConfirmationPage({ params, searchParams }) {
+  const confirmationToken = searchParams?.token;
+  if (!confirmationToken) notFound();
+
+  const { order, settings } = await getData(params.orderNumber, confirmationToken);
 
   if (!order) notFound();
 
