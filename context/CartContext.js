@@ -49,6 +49,8 @@ export function CartProvider({ children }) {
     const hasStockLimit = Number.isFinite(product.stock);
     const stockLimit = hasStockLimit ? Math.max(0, product.stock) : Infinity;
 
+    if (stockLimit <= 0) return;
+
     setItems((prev) => {
       const existing = prev.find(
         (i) => i.productId === product._id && i.size === size && i.color === color
@@ -62,8 +64,6 @@ export function CartProvider({ children }) {
             : i
         );
       }
-
-      if (stockLimit <= 0) return prev;
 
       return [
         ...prev,
