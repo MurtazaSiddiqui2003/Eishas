@@ -93,10 +93,11 @@ export default function CartPage() {
                         <button
                           type="button"
                           aria-label={`Increase quantity of ${item.name}`}
-                          className="w-[1.6rem] h-[1.6rem] border border-black/20"
+                          className="w-[1.6rem] h-[1.6rem] border border-black/20 disabled:opacity-30 disabled:cursor-not-allowed"
                           onClick={() =>
                             updateQuantity(item.productId, item.size, item.color, item.quantity + 1)
                           }
+                          disabled={Number.isFinite(item.stock) && item.quantity >= item.stock}
                         >
                           +
                         </button>
