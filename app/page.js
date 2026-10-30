@@ -86,6 +86,7 @@ export default async function HomePage() {
             )}
 
             <div className="absolute inset-0 bg-black/30 group-hover:bg-black/10 transition-colors duration-500" />
+            <div className="absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-black/55 to-transparent pointer-events-none" />
 
             <span className="absolute bottom-10 left-1/2 -translate-x-1/2 md:left-8 md:translate-x-0 font-['Cormorant_Garamond'] font-medium text-2xl md:text-3xl text-white tracking-wide whitespace-nowrap">
               {door.label}
