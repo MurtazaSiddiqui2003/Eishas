@@ -209,48 +209,45 @@ export default function ProductDetail({ product }) {
           </div>
         )}
 
-        <div className="border border-[color-mix(in_srgb,var(--ink)_15%,transparent)] p-4 sm:p-5 mt-2">
-          <div className="flex items-center justify-between gap-4 mb-4">
-            <p className="font-body text-xs uppercase tracking-wide opacity-70">Quantity</p>
-            <div className="inline-flex items-center border border-[color-mix(in_srgb,var(--ink)_25%,transparent)]">
-              <button
-                type="button"
-                onClick={() => setQuantity((value) => Math.max(1, value - 1))}
-                disabled={quantity <= 1 || product.stock <= 0}
-                aria-label="Decrease quantity"
-                className="w-10 h-10 text-lg disabled:opacity-35"
-              >
-                −
-              </button>
-              <span className="w-9 text-center font-body text-sm tabular-nums" aria-live="polite">
-                {quantity}
-              </span>
-              <button
-                type="button"
-                onClick={() => setQuantity((value) => Math.min(product.stock, value + 1))}
-                disabled={quantity >= product.stock || product.stock <= 0}
-                aria-label="Increase quantity"
-                className="w-10 h-10 text-lg disabled:opacity-35"
-              >
-                +
-              </button>
-            </div>
+        <div className="mb-5">
+          <p className="font-body text-xs uppercase tracking-wide mb-2 opacity-70">Quantity</p>
+          <div className="inline-flex items-center border border-[color-mix(in_srgb,var(--ink)_25%,transparent)]">
+            <button
+              type="button"
+              onClick={() => setQuantity((value) => Math.max(1, value - 1))}
+              disabled={quantity <= 1 || product.stock <= 0}
+              aria-label="Decrease quantity"
+              className="w-11 h-11 text-lg disabled:opacity-35"
+            >
+              −
+            </button>
+            <span className="w-10 text-center font-body text-sm tabular-nums" aria-live="polite">
+              {quantity}
+            </span>
+            <button
+              type="button"
+              onClick={() => setQuantity((value) => Math.min(product.stock, value + 1))}
+              disabled={quantity >= product.stock || product.stock <= 0}
+              aria-label="Increase quantity"
+              className="w-11 h-11 text-lg disabled:opacity-35"
+            >
+              +
+            </button>
           </div>
-
-          {variantError && (
-            <p className="text-sm text-[#b3261e] font-body mb-3" role="alert">{variantError}</p>
-          )}
-
-          <button
-            type="button"
-            onClick={handleAdd}
-            disabled={product.stock <= 0}
-            className="w-full py-3.5 border border-theme-accent text-theme-accent font-body text-sm uppercase tracking-wide hover:bg-theme-accent hover:text-theme-bg transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-          >
-            {product.stock <= 0 ? "Out of stock" : added ? "Added ✓" : "Add to bag"}
-          </button>
-          <p className="font-body text-[10px] text-center opacity-50 mt-3">Secure checkout · Easy ordering</p>
         </div>
+
+        {variantError && (
+          <p className="text-sm text-[#b3261e] font-body mb-3" role="alert">{variantError}</p>
+        )}
+
+        <button
+          type="button"
+          onClick={handleAdd}
+          disabled={product.stock <= 0}
+          className="w-full py-3.5 border border-theme-accent text-theme-accent font-body text-sm uppercase tracking-wide hover:bg-theme-accent hover:text-theme-bg transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+        >
+          {product.stock <= 0 ? "Out of stock" : added ? "Added ✓" : "Add to bag"}
+        </button>
       </div>
     </div>
   );
