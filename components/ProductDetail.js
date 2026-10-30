@@ -13,6 +13,7 @@ export default function ProductDetail({ product }) {
   const [color, setColor] = useState(product.colors?.length ? null : null);
   const [added, setAdded] = useState(false);
   const [variantError, setVariantError] = useState("");
+  const [descriptionExpanded, setDescriptionExpanded] = useState(false);
 
   const onSale = product.compareAtPrice > product.price;
   const discountPercent = onSale
@@ -132,9 +133,23 @@ export default function ProductDetail({ product }) {
         >
           {product.stock <= 0 ? "Currently out of stock" : product.stock <= 5 ? `Only ${product.stock} left — order soon` : "In stock"}
         </p>
-        <p className="font-body text-sm leading-relaxed opacity-80 mb-7 whitespace-pre-line">
-          {product.description}
-        </p>
+        {product.description && (
+          <div className="mb-5">
+            <p className={`font-body text-sm leading-relaxed opacity-80 whitespace-pre-line ${descriptionExpanded ? "" : "line-clamp-3"}`}>
+              {product.description}
+            </p>
+            {product.description.length > 150 && (
+              <button
+                type="button"
+                onClick={() => setDescriptionExpanded((expanded) => !expanded)}
+                className="font-body text-xs text-theme-accent underline underline-offset-4 mt-2"
+                aria-expanded={descriptionExpanded}
+              >
+                {descriptionExpanded ? "Show less" : "Read more"}
+              </button>
+            )}
+          </div>
+        )}
 
         {product.colors?.length > 0 && (
           <div className="mb-6">
