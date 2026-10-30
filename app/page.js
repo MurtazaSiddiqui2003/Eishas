@@ -28,7 +28,12 @@ async function getDoorImages() {
   const all = await Settings.find({}).lean();
   const map = {};
   for (const s of all) {
-    map[s.store] = { desktop: s.doorImage, mobile: s.doorImageMobile };
+    map[s.store] = {
+      desktop: s.doorImage,
+      mobile: s.doorImageMobile,
+      positionX: s.doorImagePositionX ?? 50,
+      positionY: s.doorImagePositionY ?? 50,
+    };
   }
   return map;
 }
@@ -74,6 +79,7 @@ export default async function HomePage() {
                 <img
                   src={images.desktop}
                   alt={door.label}
+                  style={{ objectPosition: `${images.positionX}% ${images.positionY}%` }}
                   className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                 />
               </picture>
