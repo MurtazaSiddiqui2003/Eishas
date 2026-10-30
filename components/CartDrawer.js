@@ -146,6 +146,8 @@ export default function CartDrawer() {
                         onClick={() =>
                           updateQuantity(item.productId, item.size, item.color, item.quantity + 1)
                         }
+                        disabled={Number.isFinite(item.stock) && item.quantity >= item.stock}
+                        className="w-5 h-5 border border-black/20 text-xs leading-none disabled:opacity-30 disabled:cursor-not-allowed"
                       >
                         +
                       </button>
