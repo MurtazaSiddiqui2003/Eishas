@@ -15,6 +15,8 @@ const SettingsSchema = new mongoose.Schema(
     logo: { type: String }, // shown in the store nav bar
     doorImage: { type: String }, // shown on the landing page split screen (desktop)
     doorImageMobile: { type: String }, // optional — falls back to doorImage if empty
+    doorImagePositionX: { type: Number, min: 0, max: 100, default: 50 }, // horizontal focal point for split-screen image
+    doorImagePositionY: { type: Number, min: 0, max: 100, default: 50 }, // vertical focal point for split-screen image
     heroImage: { type: String }, // shown as the store's own hero banner (desktop)
     heroImageMobile: { type: String }, // optional — falls back to heroImage if empty
     instagramUrl: { type: String }, // this store's own Instagram, shown in the footer
