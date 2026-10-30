@@ -8,6 +8,7 @@ import { formatPrice } from "@/lib/currency";
 export default function ProductDetail({ product }) {
   const { addItem } = useCart();
   const [activeImage, setActiveImage] = useState(0);
+  const [quantity, setQuantity] = useState(1);
   const [size, setSize] = useState(product.sizes?.length ? null : null);
   const [color, setColor] = useState(product.colors?.length ? null : null);
   const [added, setAdded] = useState(false);
@@ -36,7 +37,7 @@ export default function ProductDetail({ product }) {
     }
 
     setVariantError("");
-    addItem(product, 1, { size, color });
+    addItem(product, quantity, { size, color });
     setAdded(true);
     setTimeout(() => setAdded(false), 1500);
   }
@@ -180,6 +181,33 @@ export default function ProductDetail({ product }) {
           {product.material && <p>Material: {product.material}</p>}
           {product.skinType && <p>Skin type: {product.skinType}</p>}
           {product.volume && <p>Volume: {product.volume}</p>}
+        </div>
+
+        <div className="mb-5">
+          <p className="font-body text-xs uppercase tracking-wide mb-2 opacity-70">Quantity</p>
+          <div className="inline-flex items-center border border-[color-mix(in_srgb,var(--ink)_25%,transparent)]">
+            <button
+              type="button"
+              onClick={() => setQuantity((value) => Math.max(1, value - 1))}
+              disabled={quantity <= 1 || product.stock <= 0}
+              aria-label="Decrease quantity"
+              className="w-11 h-11 text-lg disabled:opacity-35"
+            >
+              −
+            </button>
+            <span className="w-10 text-center font-body text-sm tabular-nums" aria-live="polite">
+              {quantity}
+            </span>
+            <button
+              type="button"
+              onClick={() => setQuantity((value) => Math.min(product.stock, value + 1))}
+              disabled={quantity >= product.stock || product.stock <= 0}
+              aria-label="Increase quantity"
+              className="w-11 h-11 text-lg disabled:opacity-35"
+            >
+              +
+            </button>
+          </div>
         </div>
 
         {variantError && (
