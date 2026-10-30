@@ -115,18 +115,24 @@ export default function ProductDetail({ product }) {
           {(product.categories || []).join(", ")}
         </p>
         <h1 className="font-display text-2xl mb-3 text-theme-ink">{product.name}</h1>
-        <div className="flex items-baseline gap-3 mb-2">
-          <p className="font-body text-lg text-theme-accent">{formatPrice(product.price)}</p>
+        <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 mb-3">
+          <p className="font-body text-2xl text-theme-accent tabular-nums">{formatPrice(product.price)}</p>
           {onSale && (
-            <p className="font-body text-sm text-theme-ink opacity-40 line-through">
-              {formatPrice(product.compareAtPrice)}
-            </p>
+            <>
+              <p className="font-body text-sm text-theme-ink opacity-40 line-through">
+                {formatPrice(product.compareAtPrice)}
+              </p>
+              <span className="font-body text-xs text-theme-accent">{discountPercent}% off</span>
+            </>
           )}
         </div>
-        {product.stock > 0 && product.stock <= 5 && (
-          <p className="text-sm text-[#b3261e] font-body mb-4" aria-live="polite">Only {product.stock} left in stock</p>
-        )}
-        <p className="font-body text-sm leading-relaxed opacity-80 mb-6 whitespace-pre-line">
+        <p
+          className={`font-body text-xs mb-5 ${product.stock <= 0 ? "text-[#b3261e]" : product.stock <= 5 ? "text-[#9a641f]" : "text-[#55765b]"}`}
+          aria-live="polite"
+        >
+          {product.stock <= 0 ? "Currently out of stock" : product.stock <= 5 ? `Only ${product.stock} left — order soon` : "In stock"}
+        </p>
+        <p className="font-body text-sm leading-relaxed opacity-80 mb-7 whitespace-pre-line">
           {product.description}
         </p>
 
@@ -176,52 +182,60 @@ export default function ProductDetail({ product }) {
           </div>
         )}
 
-        <div className="font-body text-sm opacity-70 space-y-1 mb-6">
-          {product.fabric && <p>Fabric: {product.fabric}</p>}
-          {product.material && <p>Material: {product.material}</p>}
-          {product.skinType && <p>Skin type: {product.skinType}</p>}
-          {product.volume && <p>Volume: {product.volume}</p>}
-        </div>
-
-        <div className="mb-5">
-          <p className="font-body text-xs uppercase tracking-wide mb-2 opacity-70">Quantity</p>
-          <div className="inline-flex items-center border border-[color-mix(in_srgb,var(--ink)_25%,transparent)]">
-            <button
-              type="button"
-              onClick={() => setQuantity((value) => Math.max(1, value - 1))}
-              disabled={quantity <= 1 || product.stock <= 0}
-              aria-label="Decrease quantity"
-              className="w-11 h-11 text-lg disabled:opacity-35"
-            >
-              −
-            </button>
-            <span className="w-10 text-center font-body text-sm tabular-nums" aria-live="polite">
-              {quantity}
-            </span>
-            <button
-              type="button"
-              onClick={() => setQuantity((value) => Math.min(product.stock, value + 1))}
-              disabled={quantity >= product.stock || product.stock <= 0}
-              aria-label="Increase quantity"
-              className="w-11 h-11 text-lg disabled:opacity-35"
-            >
-              +
-            </button>
+        {(product.fabric || product.material || product.skinType || product.volume) && (
+          <div className="border-t border-[color-mix(in_srgb,var(--ink)_12%,transparent)] pt-4 mt-1 mb-6">
+            <p className="font-body text-[10px] uppercase tracking-[0.16em] opacity-50 mb-2">Product details</p>
+            <div className="font-body text-sm opacity-75 space-y-1">
+              {product.fabric && <p>Fabric: {product.fabric}</p>}
+              {product.material && <p>Material: {product.material}</p>}
+              {product.skinType && <p>Skin type: {product.skinType}</p>}
+              {product.volume && <p>Volume: {product.volume}</p>}
+            </div>
           </div>
-        </div>
-
-        {variantError && (
-          <p className="text-sm text-[#b3261e] font-body mb-3" role="alert">{variantError}</p>
         )}
 
-        <button
-          type="button"
-          onClick={handleAdd}
-          disabled={product.stock <= 0}
-          className="w-full py-3.5 border border-theme-accent text-theme-accent font-body text-sm uppercase tracking-wide hover:bg-theme-accent hover:text-theme-bg transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-        >
-          {product.stock <= 0 ? "Out of stock" : added ? "Added ✓" : "Add to bag"}
-        </button>
+        <div className="border border-[color-mix(in_srgb,var(--ink)_15%,transparent)] p-4 sm:p-5 mt-2">
+          <div className="flex items-center justify-between gap-4 mb-4">
+            <p className="font-body text-xs uppercase tracking-wide opacity-70">Quantity</p>
+            <div className="inline-flex items-center border border-[color-mix(in_srgb,var(--ink)_25%,transparent)]">
+              <button
+                type="button"
+                onClick={() => setQuantity((value) => Math.max(1, value - 1))}
+                disabled={quantity <= 1 || product.stock <= 0}
+                aria-label="Decrease quantity"
+                className="w-10 h-10 text-lg disabled:opacity-35"
+              >
+                −
+              </button>
+              <span className="w-9 text-center font-body text-sm tabular-nums" aria-live="polite">
+                {quantity}
+              </span>
+              <button
+                type="button"
+                onClick={() => setQuantity((value) => Math.min(product.stock, value + 1))}
+                disabled={quantity >= product.stock || product.stock <= 0}
+                aria-label="Increase quantity"
+                className="w-10 h-10 text-lg disabled:opacity-35"
+              >
+                +
+              </button>
+            </div>
+          </div>
+
+          {variantError && (
+            <p className="text-sm text-[#b3261e] font-body mb-3" role="alert">{variantError}</p>
+          )}
+
+          <button
+            type="button"
+            onClick={handleAdd}
+            disabled={product.stock <= 0}
+            className="w-full py-3.5 border border-theme-accent text-theme-accent font-body text-sm uppercase tracking-wide hover:bg-theme-accent hover:text-theme-bg transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            {product.stock <= 0 ? "Out of stock" : added ? "Added ✓" : "Add to bag"}
+          </button>
+          <p className="font-body text-[10px] text-center opacity-50 mt-3">Secure checkout · Easy ordering</p>
+        </div>
       </div>
     </div>
   );
