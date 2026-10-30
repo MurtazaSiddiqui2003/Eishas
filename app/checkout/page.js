@@ -178,11 +178,11 @@ export default function CheckoutPage() {
   }
 
   const inputClass =
-    "w-full px-4 py-3 border border-black/15 text-[var(--ink)] placeholder:text-[color-mix(in_srgb,var(--ink)_40%,transparent)] font-['Inter'] text-sm bg-white";
+    "w-full px-4 py-3.5 border border-black/15 text-[var(--ink)] placeholder:text-[color-mix(in_srgb,var(--ink)_40%,transparent)] font-['Inter']'] text-sm bg-white focus:outline-none focus:border-[var(--ink)] transition-colors";
 
   return (
     <main className="min-h-screen bg-[var(--ivory)] text-[var(--ink)] font-['Inter'] flex flex-col">
-      <div className="w-full max-w-[900px] mx-auto px-6 py-10 grid grid-cols-1 md:grid-cols-[1.3fr_1fr] gap-10 flex-1">
+      <div className="w-full max-w-[1040px] mx-auto px-5 sm:px-8 py-8 sm:py-12 grid grid-cols-1 md:grid-cols-[1.25fr_0.85fr] gap-8 lg:gap-14 flex-1">
         <div>
           <Link
             href="/"
@@ -191,9 +191,11 @@ export default function CheckoutPage() {
             Eisha&rsquo;s Collection
           </Link>
 
-          <h1 className="font-['Cormorant_Garamond'] text-2xl mb-6">
+          <p className="text-[0.65rem] tracking-[0.22em] uppercase opacity-50 mb-2">Almost yours</p>
+          <h1 className="font-['Cormorant_Garamond'] text-[2rem] leading-none mb-3">
             Checkout
           </h1>
+          <p className="text-sm opacity-60 mb-7">Add your delivery details and choose how you’d like to pay.</p>
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-3">
             <label className="sr-only" htmlFor="customerName">
@@ -300,7 +302,7 @@ export default function CheckoutPage() {
             />
 
             <p
-              className="text-xs uppercase tracking-wide opacity-60 mt-3 mb-1"
+              className="text-xs uppercase tracking-[0.16em] opacity-65 mt-5 mb-1"
               id="payment-method-heading"
             >
               Payment method
@@ -322,7 +324,7 @@ export default function CheckoutPage() {
                 {availableMethods.map((method) => (
                   <label
                     key={method}
-                    className={`flex items-center gap-3 px-4 py-3 border cursor-pointer text-sm ${
+                    className={`flex items-center gap-3 px-4 py-3.5 border cursor-pointer text-sm transition-colors ${
                       paymentMethod === method
                         ? "border-[var(--ink)] bg-white"
                         : "border-black/15"
@@ -356,22 +358,22 @@ export default function CheckoutPage() {
             <button
               type="submit"
               disabled={submitting || availableMethods.length === 0}
-              className="mt-2 py-3.5 bg-[var(--ink)] text-[var(--ivory)] font-medium text-sm tracking-wide disabled:opacity-50"
+              className="mt-3 py-4 bg-[var(--ink)] text-[var(--ivory)] font-medium text-xs uppercase tracking-[0.16em] hover:opacity-90 transition-opacity disabled:opacity-50"
             >
               {submitting ? "Processing…" : "Place order"}
             </button>
           </form>
         </div>
 
-        <div className="bg-white/60 border border-black/10 p-6 h-fit">
-          <h2 className="font-['Cormorant_Garamond'] text-lg mb-4">
+        <div className="bg-white/60 border border-black/10 p-5 sm:p-7 h-fit md:sticky md:top-8">
+          <h2 className="font-['Cormorant_Garamond'] text-xl mb-5 pb-3 border-b border-black/10">
             Order summary
           </h2>
-          <div className="flex flex-col gap-3 mb-4">
+          <div className="flex flex-col gap-4 mb-5">
             {items.map((item) => (
               <div
                 key={`${item.productId}-${item.size}-${item.color}`}
-                className="flex justify-between text-sm gap-3"
+                className="flex justify-between text-sm gap-3 leading-relaxed"
               >
                 <span className="flex-1">
                   {item.name}
@@ -392,7 +394,7 @@ export default function CheckoutPage() {
             <span>Delivery</span>
             <span>{deliveryFee === 0 ? "Free" : formatPrice(deliveryFee)}</span>
           </div>
-          <div className="flex justify-between font-medium text-base pt-3 border-t border-black/10">
+          <div className="flex justify-between font-medium text-lg pt-4 mt-1 border-t border-black/10">
             <span>Total</span>
             <span>{formatPrice(orderTotal)}</span>
           </div>
