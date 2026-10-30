@@ -18,6 +18,12 @@ export default function ProductDetail({ product }) {
     ? Math.round(((product.compareAtPrice - product.price) / product.compareAtPrice) * 100)
     : 0;
 
+  function changeImage(direction) {
+    const imageCount = product.images?.length || 0;
+    if (imageCount < 2) return;
+    setActiveImage((current) => (current + direction + imageCount) % imageCount);
+  }
+
   function handleAdd() {
     if (product.sizes?.length > 0 && !size) {
       setVariantError("Please select a size.");
@@ -57,10 +63,34 @@ export default function ProductDetail({ product }) {
               -{discountPercent}%
             </span>
           )}
+
+          {product.images?.length > 1 && (
+            <>
+              <button
+                type="button"
+                onClick={() => changeImage(-1)}
+                aria-label="View previous product image"
+                className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 text-[#332e2b] shadow-md flex items-center justify-center hover:bg-white transition-colors"
+              >
+                <span aria-hidden="true" className="text-2xl leading-none">‹</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => changeImage(1)}
+                aria-label="View next product image"
+                className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 text-[#332e2b] shadow-md flex items-center justify-center hover:bg-white transition-colors"
+              >
+                <span aria-hidden="true" className="text-2xl leading-none">›</span>
+              </button>
+              <span className="absolute bottom-3 right-3 rounded-full bg-black/55 text-white px-3 py-1 text-xs font-body tabular-nums" aria-live="polite">
+                {activeImage + 1} / {product.images.length}
+              </span>
+            </>
+          )}
         </div>
 
         {product.images?.length > 1 && (
-          <div className="flex gap-2 flex-wrap">
+          <div className="flex gap-2 overflow-x-auto flex-nowrap pb-1">
             {product.images.map((img, i) => (
               <button
                 type="button"
