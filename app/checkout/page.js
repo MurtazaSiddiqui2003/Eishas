@@ -178,7 +178,7 @@ export default function CheckoutPage() {
   }
 
   const inputClass =
-    "w-full px-4 py-3.5 border border-black/15 text-[var(--ink)] placeholder:text-[color-mix(in_srgb,var(--ink)_40%,transparent)] font-['Inter']'] text-sm bg-white focus:outline-none focus:border-[var(--ink)] transition-colors";
+    "w-full px-4 py-3.5 border border-black/15 text-[var(--ink)] placeholder:text-[color-mix(in_srgb,var(--ink)_40%,transparent)] font-['Inter'] text-sm bg-white focus:outline-none focus:border-[var(--ink)] transition-colors";
 
   return (
     <main className="min-h-screen bg-[var(--ivory)] text-[var(--ink)] font-['Inter'] flex flex-col">
