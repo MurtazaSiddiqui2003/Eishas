@@ -46,18 +46,25 @@ export function CartProvider({ children }) {
   function addItem(product, quantity = 1, options = {}) {
     const { size = null, color = null } = options;
     const safeQuantity = Number.isInteger(quantity) && quantity > 0 ? quantity : 1;
+    const hasStockLimit = Number.isFinite(product.stock);
+    const stockLimit = hasStockLimit ? Math.max(0, product.stock) : Infinity;
 
     setItems((prev) => {
       const existing = prev.find(
         (i) => i.productId === product._id && i.size === size && i.color === color
       );
+
       if (existing) {
+        const nextQuantity = Math.min(existing.quantity + safeQuantity, stockLimit);
         return prev.map((i) =>
           i.productId === product._id && i.size === size && i.color === color
-            ? { ...i, quantity: i.quantity + safeQuantity }
+            ? { ...i, stock: hasStockLimit ? stockLimit : i.stock, quantity: nextQuantity }
             : i
         );
       }
+
+      if (stockLimit <= 0) return prev;
+
       return [
         ...prev,
         {
@@ -68,7 +75,8 @@ export function CartProvider({ children }) {
           image: product.images?.[0],
           size,
           color,
-          quantity: safeQuantity,
+          stock: hasStockLimit ? stockLimit : undefined,
+          quantity: Math.min(safeQuantity, stockLimit),
         },
       ];
     });
@@ -92,7 +100,7 @@ export function CartProvider({ children }) {
     setItems((prev) =>
       prev.map((i) =>
         i.productId === productId && i.size === size && i.color === color
-          ? { ...i, quantity: safeQuantity }
+          ? { ...i, quantity: Number.isFinite(i.stock) ? Math.min(safeQuantity, i.stock) : safeQuantity }
           : i
       )
     );
