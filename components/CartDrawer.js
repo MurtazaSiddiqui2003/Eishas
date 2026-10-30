@@ -97,7 +97,22 @@ export default function CartDrawer() {
 
         <div className="flex-1 overflow-y-auto px-5 py-4">
           {items.length === 0 ? (
-            <p className="text-sm opacity-60 text-center py-10">Your bag is empty.</p>
+            <div className="flex min-h-[55%] flex-col items-center justify-center text-center py-10">
+              <div className="mb-5 flex h-16 w-16 items-center justify-center border border-black/10 rounded-full text-2xl opacity-60" aria-hidden="true">
+                ♡
+              </div>
+              <h3 className="font-['Cormorant_Garamond'] text-2xl mb-2">Your bag is waiting</h3>
+              <p className="text-sm opacity-60 max-w-[230px] mb-6">
+                You haven’t added anything yet. Explore the collection and find something you love.
+              </p>
+              <Link
+                href="/"
+                onClick={closeCart}
+                className="inline-flex items-center justify-center border border-[var(--ink)] px-7 py-3 text-xs uppercase tracking-[0.16em] hover:bg-[var(--ink)] hover:text-[var(--ivory)] transition-colors"
+              >
+                Continue shopping
+              </Link>
+            </div>
           ) : (
             <div className="flex flex-col gap-4">
               {items.map((item) => (
