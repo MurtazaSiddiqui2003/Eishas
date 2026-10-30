@@ -51,6 +51,8 @@ export default function AdminPage() {
     logo: "",
     doorImage: "",
     doorImageMobile: "",
+    doorImagePositionX: 50,
+    doorImagePositionY: 50,
     heroImage: "",
     heroImageMobile: "",
     instagramUrl: "",
@@ -83,6 +85,8 @@ export default function AdminPage() {
       logo: s?.logo || "",
       doorImage: s?.doorImage || "",
       doorImageMobile: s?.doorImageMobile || "",
+      doorImagePositionX: s?.doorImagePositionX ?? 50,
+      doorImagePositionY: s?.doorImagePositionY ?? 50,
       heroImage: s?.heroImage || "",
       heroImageMobile: s?.heroImageMobile || "",
       instagramUrl: s?.instagramUrl || "",
@@ -366,6 +370,37 @@ export default function AdminPage() {
                 value={settingsForm.doorImageMobile}
                 onChange={(url) => setSettingsForm((f) => ({ ...f, doorImageMobile: url }))}
               />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                <label className="text-xs text-[#666]">
+                  Image focus — horizontal ({settingsForm.doorImagePositionX}%)
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    step="1"
+                    className="w-full mt-2 accent-[#1a1a1a]"
+                    value={settingsForm.doorImagePositionX}
+                    onChange={(e) => setSettingsForm((f) => ({ ...f, doorImagePositionX: Number(e.target.value) }))}
+                  />
+                  <span className="flex justify-between text-[10px] text-[#999]"><span>Left</span><span>Right</span></span>
+                </label>
+                <label className="text-xs text-[#666]">
+                  Image focus — vertical ({settingsForm.doorImagePositionY}%)
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    step="1"
+                    className="w-full mt-2 accent-[#1a1a1a]"
+                    value={settingsForm.doorImagePositionY}
+                    onChange={(e) => setSettingsForm((f) => ({ ...f, doorImagePositionY: Number(e.target.value) }))}
+                  />
+                  <span className="flex justify-between text-[10px] text-[#999]"><span>Top</span><span>Bottom</span></span>
+                </label>
+              </div>
+              <p className="text-[11px] text-[#999]">
+                Adjust the focal point if the subject gets cropped. These settings apply to this store’s homepage image on desktop and mobile.
+              </p>
             </div>
 
             <div className="flex flex-col gap-3">
